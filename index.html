@@ -2323,36 +2323,51 @@
       ctx.shadowColor = 'transparent';
       ctx.stroke();
 
-      // Lâmina Frontal Prateada Chanfrada
+      // Lâmina Frontal Prateada Chanfrada (Sólida e sem furos)
       const altLamina = tam * 0.24;
       const gradLamina = ctx.createLinearGradient(0, -m, 0, -m + altLamina);
-      gradLamina.addColorStop(0, '#f1f5f9');
-      gradLamina.addColorStop(0.55, '#94a3b8');
-      gradLamina.addColorStop(1, '#334155');
+      gradLamina.addColorStop(0, '#f8fafc');
+      gradLamina.addColorStop(0.35, '#cbd5e1');
+      gradLamina.addColorStop(0.7, '#94a3b8');
+      gradLamina.addColorStop(1, '#475569');
 
       ctx.fillStyle = gradLamina;
       ctx.beginPath();
-      ctx.moveTo(-m + 1, -m + 1);
-      ctx.lineTo(m - 1, -m + 1);
-      ctx.lineTo(m - 4, -m + altLamina);
-      ctx.lineTo(-m + 4, -m + altLamina);
+      ctx.moveTo(-m, -m);
+      ctx.lineTo(m, -m);
+      ctx.lineTo(m - 3, -m + altLamina);
+      ctx.lineTo(-m + 3, -m + altLamina);
       ctx.closePath();
       ctx.fill();
 
-      // 2 Sensores de Linha Branca nos cantos frontais da lâmina (Melhoria B)
+      // Bisel / reflexo metálico contínuo na lâmina
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.65)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(-m, -m);
+      ctx.lineTo(m, -m);
+      ctx.stroke();
+
+      // Indicadores de Linha Branca: a lâmina é sólida (sensores ficam por baixo).
+      // Apenas acende um LED indicador luminoso quando o sensor detectar a borda branca (Tawara)!
       [
         { pos: estado.sensoresLinhaLocalCm.esq, ativo: estado.bordaEsqAtiva },
         { pos: estado.sensoresLinhaLocalCm.dir, ativo: estado.bordaDirAtiva }
       ].forEach((sl) => {
+        if (!sl.ativo) return; // Quando preto (inativo), não desenha furo na lâmina
         const lx = sl.pos.x * pxPorCm;
         const ly = sl.pos.y * pxPorCm;
+        ctx.save();
         ctx.beginPath();
-        ctx.arc(lx, ly, 3.2, 0, Math.PI * 2);
-        ctx.fillStyle = sl.ativo ? '#38bdf8' : '#1e293b';
+        ctx.arc(lx, ly, 3.8, 0, Math.PI * 2);
+        ctx.fillStyle = '#38bdf8';
+        ctx.shadowColor = '#38bdf8';
+        ctx.shadowBlur = 8;
         ctx.fill();
-        ctx.strokeStyle = sl.ativo ? '#e0f2fe' : '#475569';
-        ctx.lineWidth = 1;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.2;
         ctx.stroke();
+        ctx.restore();
       });
 
       // Duas Rodas Laterais
