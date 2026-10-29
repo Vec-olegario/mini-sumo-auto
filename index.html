@@ -1125,6 +1125,7 @@
     <div class="grupo-btn">
       <button id="btnPlaySimulacao" class="btn-play" type="button">▶ Play</button>
       <button id="btnToggleCones" class="ativo" type="button">Cones</button>
+      <button id="btnToggleGrade" class="ativo" type="button" title="Mostrar/ocultar grade quadriculada de 10×10 cm no Dohyo">Grade 10cm</button>
       <button id="btnResetar" class="btn-sutil" type="button">Resetar</button>
     </div>
   </header>
@@ -1517,6 +1518,7 @@
       rastroOponenteCm: [],
 
       mostrarCones: true,
+      mostrarGrade: true,
       ultimoLadoVisto: 'esquerda',
       modoEngenharia: false,
       simulandoMovimento: false,
@@ -2037,6 +2039,75 @@
       ctx.fillStyle = '#0c0e14';
       ctx.fill();
 
+      // 8.1b. Grade Quadriculada 10×10 cm + Quadrados de Referência dentro do Dohyo
+      if (estado.mostrarGrade) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(dohyoCx, dohyoCy, raioInterno, 0, Math.PI * 2);
+        ctx.clip();
+
+        // Sub-grade fina de 5 em 5 cm
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.05)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let cm = -35; cm <= 35; cm += 5) {
+          if (cm % 10 === 0) continue;
+          const posPx = cm * pxPorCm;
+          ctx.moveTo(dohyoCx + posPx, dohyoCy - raioInterno);
+          ctx.lineTo(dohyoCx + posPx, dohyoCy + raioInterno);
+          ctx.moveTo(dohyoCx - raioInterno, dohyoCy + posPx);
+          ctx.lineTo(dohyoCx + raioInterno, dohyoCy + posPx);
+        }
+        ctx.stroke();
+
+        // Grade principal de 10 em 10 cm (1 quadrado = 10×10 cm = tamanho exato de 1 robô!)
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.14)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for (let cm = -30; cm <= 30; cm += 10) {
+          if (cm === 0) continue;
+          const posPx = cm * pxPorCm;
+          ctx.moveTo(dohyoCx + posPx, dohyoCy - raioInterno);
+          ctx.lineTo(dohyoCx + posPx, dohyoCy + raioInterno);
+          ctx.moveTo(dohyoCx - raioInterno, dohyoCy + posPx);
+          ctx.lineTo(dohyoCx + raioInterno, dohyoCy + posPx);
+        }
+        ctx.stroke();
+
+        // Eixos centrais X=0 e Y=0
+        ctx.strokeStyle = 'rgba(148, 163, 184, 0.24)';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(dohyoCx, dohyoCy - raioInterno);
+        ctx.lineTo(dohyoCx, dohyoCy + raioInterno);
+        ctx.moveTo(dohyoCx - raioInterno, dohyoCy);
+        ctx.lineTo(dohyoCx + raioInterno, dohyoCy);
+        ctx.stroke();
+
+        // Quadrados tracejados de referência (20×20 cm e 40×40 cm centrados na arena)
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+        ctx.lineWidth = 1.1;
+        ctx.setLineDash([5, 5]);
+        [10, 20].forEach((meioLadoCm) => {
+          const mPx = meioLadoCm * pxPorCm;
+          ctx.strokeRect(dohyoCx - mPx, dohyoCy - mPx, mPx * 2, mPx * 2);
+        });
+        ctx.setLineDash([]);
+
+        // Rótulos discretos de distância (10 cm, 20 cm, 30 cm)
+        ctx.font = '500 9.5px Inter, system-ui, sans-serif';
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.48)';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        [10, 20, 30].forEach((cm) => {
+          const p = cm * pxPorCm;
+          ctx.fillText(`${cm}cm`, dohyoCx + p + 3, dohyoCy + 3);
+          ctx.fillText(`${cm}cm`, dohyoCx + 3, dohyoCy - p + 2);
+        });
+
+        ctx.restore();
+      }
+
       const shikiriLargPx = CONFIG.shikiriComprimentoCm * pxPorCm;
       const shikiriAltPx = CONFIG.shikiriEspessuraCm * pxPorCm;
       const shikiriMeiaDistPx = (CONFIG.shikiriDistanciaCm / 2) * pxPorCm;
@@ -2461,7 +2532,7 @@
       ctx.font = '500 11px Inter, system-ui, sans-serif';
       ctx.fillStyle = '#94a3b8';
       ctx.textAlign = 'left';
-      ctx.fillText(`10 cm (1 cm = ${pxPorCm.toFixed(1).replace('.', ',')} px)`, x0, y0 - 9);
+      ctx.fillText(`10 cm = 1 quadrado (robô 10×10 cm)`, x0, y0 - 9);
       ctx.restore();
     }
 
@@ -3373,6 +3444,13 @@
       if (!estado.simulandoMovimento) executarCicloSimulacao();
     });
 
+    const btnToggleGrade = document.getElementById('btnToggleGrade');
+    btnToggleGrade.addEventListener('click', () => {
+      estado.mostrarGrade = !estado.mostrarGrade;
+      btnToggleGrade.classList.toggle('ativo', estado.mostrarGrade);
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    });
+
     document.getElementById('btnLimparForcado').addEventListener('click', () => {
       estado.leiturasForcadas = null;
       if (!estado.simulandoMovimento) executarCicloSimulacao();
@@ -3459,6 +3537,7 @@
       estado.rotacaoRoboGraus = 0;
       estado.tempoManobraBorda = 0;
       estado.mostrarCones = true;
+      estado.mostrarGrade = true;
       estado.ultimoLadoVisto = 'esquerda';
       estado.leiturasForcadas = null;
       estado.sensorSelecionadoIdx = null;
@@ -3477,6 +3556,7 @@
       document.getElementById('labelGiroRobo').textContent = '0°';
       btnToggleCones.classList.add('ativo');
       btnToggleCones.textContent = 'Cones';
+      btnToggleGrade.classList.add('ativo');
 
       criarSlidersSensores();
       renderizarEditorRegras();
