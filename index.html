@@ -1344,9 +1344,9 @@
         <!-- Barra de Presets de Montagem no Chassi -->
         <div class="grupo-btn" style="margin-bottom:8px;">
           <span class="rotulo-mini">Presets:</span>
-          <button type="button" data-preset="padrao" title="Perímetro: 0°, 45°, 90°, 135°, 180°">Padrão</button>
+          <button type="button" data-preset="frontal" class="ativo" title="5 sensores alinhados na lâmina frontal (Padrão)">Frontal (Padrão)</button>
+          <button type="button" data-preset="perimetro" title="Perímetro clássico: 0°, 45°, 90°, 135°, 180°">Perímetro</button>
           <button type="button" data-preset="cruzado" title="Cruza S2 e S4 na frente da lâmina">Cruzados</button>
-          <button type="button" data-preset="frontal" title="5 sensores alinhados na lâmina frontal">Frontal</button>
           <button type="button" data-preset="paralelo" title="S2, S3 e S4 paralelos a 90° + S1/S5 laterais">Paralelos</button>
           <button type="button" data-preset="convergente" title="Feixes convergindo no centro">Convergente</button>
           <button type="button" data-preset="sniper" title="Feixes estreitos e longo alcance">Sniper</button>
@@ -1433,11 +1433,11 @@
       },
 
       sensoresPadrao: [
-        { id: 'S1', nome: 'Lat. Esq',  angulo: 0,   fov: 40, alcanceCm: 10, offsetLocalCm: { x: -4.6, y: -0.4 } },
-        { id: 'S2', nome: 'Diag. Esq', angulo: 45,  fov: 40, alcanceCm: 20, offsetLocalCm: { x: -4.4, y: -4.4 } },
-        { id: 'S3', nome: 'Frente',    angulo: 90,  fov: 40, alcanceCm: 30, offsetLocalCm: { x:  0.0, y: -4.7 } },
-        { id: 'S4', nome: 'Diag. Dir', angulo: 135, fov: 40, alcanceCm: 20, offsetLocalCm: { x:  4.4, y: -4.4 } },
-        { id: 'S5', nome: 'Lat. Dir',  angulo: 180, fov: 40, alcanceCm: 10, offsetLocalCm: { x:  4.6, y: -0.4 } }
+        { id: 'S1', nome: 'Frente Esq++', angulo: 35,  fov: 35, alcanceCm: 18, offsetLocalCm: { x: -4.4, y: -4.6 } },
+        { id: 'S2', nome: 'Frente Esq',   angulo: 65,  fov: 35, alcanceCm: 25, offsetLocalCm: { x: -2.2, y: -4.7 } },
+        { id: 'S3', nome: 'Centro',       angulo: 90,  fov: 35, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -4.7 } },
+        { id: 'S4', nome: 'Frente Dir',   angulo: 115, fov: 35, alcanceCm: 25, offsetLocalCm: { x:  2.2, y: -4.7 } },
+        { id: 'S5', nome: 'Frente Dir++', angulo: 145, fov: 35, alcanceCm: 18, offsetLocalCm: { x:  4.4, y: -4.6 } }
       ],
 
       // Presets rápidos de ação para o seletor de cada regra
@@ -3201,9 +3201,20 @@
 
     document.querySelectorAll('[data-preset]').forEach((btn) => {
       btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-preset]').forEach((b) => b.classList.remove('ativo'));
+        btn.classList.add('ativo');
+
         const p = btn.dataset.preset;
-        if (p === 'padrao') {
+        if (p === 'padrao' || p === 'frontal') {
           estado.sensores = JSON.parse(JSON.stringify(CONFIG.sensoresPadrao));
+        } else if (p === 'perimetro') {
+          estado.sensores = [
+            { id: 'S1', nome: 'Lat. Esq',  angulo: 0,   fov: 40, alcanceCm: 10, offsetLocalCm: { x: -4.6, y: -0.4 } },
+            { id: 'S2', nome: 'Diag. Esq', angulo: 45,  fov: 40, alcanceCm: 20, offsetLocalCm: { x: -4.4, y: -4.4 } },
+            { id: 'S3', nome: 'Frente',    angulo: 90,  fov: 40, alcanceCm: 30, offsetLocalCm: { x:  0.0, y: -4.7 } },
+            { id: 'S4', nome: 'Diag. Dir', angulo: 135, fov: 40, alcanceCm: 20, offsetLocalCm: { x:  4.4, y: -4.4 } },
+            { id: 'S5', nome: 'Lat. Dir',  angulo: 180, fov: 40, alcanceCm: 10, offsetLocalCm: { x:  4.6, y: -0.4 } }
+          ];
         } else if (p === 'cruzado') {
           estado.sensores = [
             { id: 'S1', nome: 'Lat. Esq',  angulo: 0,   fov: 40, alcanceCm: 12, offsetLocalCm: { x: -4.6, y: 0.0 } },
@@ -3557,6 +3568,9 @@
       btnToggleCones.classList.add('ativo');
       btnToggleCones.textContent = 'Cones';
       btnToggleGrade.classList.add('ativo');
+      document.querySelectorAll('[data-preset]').forEach((b) => {
+        b.classList.toggle('ativo', b.dataset.preset === 'frontal');
+      });
 
       criarSlidersSensores();
       renderizarEditorRegras();
