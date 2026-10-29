@@ -1114,18 +1114,18 @@
   <header>
     <div class="titulo-grupo">
       <h1>Simulador Mini Sumô</h1>
-      <span class="tag-modelo">5× FX-S50 + 2× Sensores de Borda + Física OBB</span>
+      <span class="tag-modelo">5× FX-S50 · Física 2D</span>
     </div>
 
     <div class="seletor-modo">
-      <button type="button" id="btnModoPrioridade" class="modo-ativo">Modo 1: Prioridade (5 Setores)</button>
-      <button type="button" id="btnModoEngenharia">Modo Engenharia: 9 Zonas (Interseção)</button>
+      <button type="button" id="btnModoPrioridade" class="modo-ativo">Prioridade</button>
+      <button type="button" id="btnModoEngenharia">Interseção</button>
     </div>
 
     <div class="grupo-btn">
-      <button id="btnPlaySimulacao" class="btn-play" type="button">▶ Rodar Física (Play)</button>
-      <button id="btnToggleCones" class="ativo" type="button">Cones Visíveis</button>
-      <button id="btnResetar" class="btn-sutil" type="button">Resetar Tudo</button>
+      <button id="btnPlaySimulacao" class="btn-play" type="button">▶ Play</button>
+      <button id="btnToggleCones" class="ativo" type="button">Cones</button>
+      <button id="btnResetar" class="btn-sutil" type="button">Resetar</button>
     </div>
   </header>
 
@@ -1134,46 +1134,46 @@
     <section class="coluna-esquerda">
       <div class="painel">
         <div class="painel-cabecalho">
-          <span class="painel-titulo">Dohyo Ø 77 cm · Vista Superior</span>
+          <span class="painel-titulo">Dohyo Ø 77 cm</span>
           <div style="display:flex; align-items:center; gap:10px;">
             <span class="badge-cronometro" id="badgeCronometro">⏱ 0,00 s</span>
-            <span class="painel-sub" id="infoPosicaoOponente">Distância: -- cm</span>
+            <span class="painel-sub" id="infoPosicaoOponente">Dist: -- cm</span>
           </div>
         </div>
 
         <div class="canvas-wrap">
           <canvas id="canvasArena" width="620" height="620"></canvas>
-          <div id="toastArena" class="toast-arena">🏆 IPPON! Oponente fora do Dohyo!</div>
+          <div id="toastArena" class="toast-arena">🏆 IPPON!</div>
         </div>
 
         <div class="dica-interacao">
-          💡 Arraste o <strong>Oponente</strong>, o <strong>Robô</strong> ou qualquer sensor <strong>S1–S5</strong> direto no chassi!
+          Arraste o <strong>Robô</strong>, <strong>Oponente</strong> ou sensores <strong>S1–S5</strong> no canvas.
         </div>
 
-        <!-- Largadas Oficiais de Torneio (Melhoria G) -->
+        <!-- Largadas Oficiais de Torneio -->
         <div class="barra-controles">
           <div class="grupo-btn">
-            <span class="rotulo-mini">Largadas de Torneio:</span>
-            <button type="button" class="btn-torneio" data-cenario="frente">Frente a Frente</button>
-            <button type="button" class="btn-torneio" data-cenario="lado-a-lado">Lado a Lado (90°)</button>
-            <button type="button" class="btn-torneio" data-cenario="costas">Costas c/ Costas (180°)</button>
+            <span class="rotulo-mini">Largada:</span>
+            <button type="button" class="btn-torneio" data-cenario="frente">Frente</button>
+            <button type="button" class="btn-torneio" data-cenario="lado-a-lado">Lado (90°)</button>
+            <button type="button" class="btn-torneio" data-cenario="costas">Costas (180°)</button>
           </div>
         </div>
 
-        <!-- Cenários Didáticos de Sensores -->
+        <!-- Cenários de Sensores -->
         <div class="barra-controles" style="margin-top:6px; padding-top:6px;">
           <div class="grupo-btn">
-            <span class="rotulo-mini">Testar Cones:</span>
-            <button type="button" class="ativo" data-cenario="s1-s2-s3">⚡ S1+S2+S3 (Força Máx)</button>
+            <span class="rotulo-mini">Posição:</span>
+            <button type="button" class="ativo" data-cenario="s1-s2-s3">⚡ S1+S2+S3</button>
             <button type="button" data-cenario="diagonal-esquerda">Diag. Esq</button>
-            <button type="button" data-cenario="intersecao">Interseção (S2+S3)</button>
+            <button type="button" data-cenario="intersecao">S2+S3</button>
             <button type="button" data-cenario="lateral-direita">Lat. Dir</button>
             <button type="button" data-cenario="fora">Fora</button>
-            <button type="button" class="btn-demo-alerta" data-cenario="nao-vizinhos">Ruído S1+S5</button>
+            <button type="button" class="btn-demo-alerta" data-cenario="nao-vizinhos">S1+S5</button>
           </div>
         </div>
 
-        <!-- Giro do Robô + Comportamento do Oponente na Física -->
+        <!-- Giro do Robô + Comportamento do Oponente -->
         <div class="barra-controles" style="margin-top:6px; padding-top:6px;">
           <div class="grupo-btn">
             <span class="rotulo-mini">Robô:</span>
@@ -1185,10 +1185,10 @@
 
           <div class="grupo-btn">
             <span class="rotulo-mini">Oponente:</span>
-            <select id="selectModoOponente" title="Comportamento físico do oponente quando o Play está ativo">
-              <option value="pesado">500g c/ Giro Real (Empurrável)</option>
-              <option value="movel">Oponente em Movimento</option>
-              <option value="fixo">Estático (Travado)</option>
+            <select id="selectModoOponente" title="Comportamento físico do oponente">
+              <option value="pesado">Empurrável (500g)</option>
+              <option value="movel">Móvel</option>
+              <option value="fixo">Fixo</option>
             </select>
           </div>
         </div>
@@ -1198,27 +1198,26 @@
     <!-- ==================== DIREITA: PAINÉIS ==================== -->
     <section class="coluna-direita">
 
-      <!-- 1. ÁREA DETECTADA PELOS SENSORES DIGITAIS VS POSIÇÃO REAL -->
+      <!-- 1. RESUMO DETECÇÃO -->
       <div class="painel">
         <div class="resumo-topo">
           <div class="explicacao-digital" id="textoExplicacaoModo">
-            <strong>Modo 1 — Prioridade Simples (5 Setores):</strong><br />
-            Olha um sensor por vez (<code>S3 → S2 → S4 → S1 → S5</code>). Os pontos verdes brilhantes no oponente mostram onde o feixe infravermelho reflete, e as fatias ciano mostram onde há interseção dupla de cones!
+            <strong>Modo Prioridade:</strong> avalia as regras em ordem (1ª que bater vence).
           </div>
 
           <div class="bloco-destaque">
-            <div class="rotulo">Zona Detectada pelo Robô</div>
+            <div class="rotulo">Zona Detectada</div>
             <div class="valor-setor" id="valorAreaDetectada">--</div>
           </div>
 
           <div class="bloco-destaque">
-            <div class="rotulo">Direção Real (Seta Laranja)</div>
+            <div class="rotulo">Ângulo Real</div>
             <div class="valor-angulo" id="valorAnguloOponente">--</div>
           </div>
         </div>
 
         <div id="avisoNaoVizinhos" class="alerta-nao-vizinhos">
-          <span>⚠️ Sensores NÃO vizinhos ativos ao mesmo tempo — <strong>descartando interseção e usando prioridade!</strong></span>
+          <span>⚠️ Sensores separados ativos — usando prioridade.</span>
           <button type="button" id="btnLimparForcado" style="display:none;">Limpar</button>
         </div>
       </div>
@@ -1227,41 +1226,41 @@
       <div class="grid-leituras">
         <div class="painel">
           <div class="painel-cabecalho">
-            <span class="painel-titulo">Painel de Leituras</span>
-            <span class="painel-sub">FX-S50 + Sensores de Borda</span>
+            <span class="painel-titulo">Sensores IR</span>
+            <span class="painel-sub">FX-S50</span>
           </div>
           <table class="planilha">
             <thead>
               <tr>
                 <th>Sensor</th>
-                <th>Posição / Ângulo</th>
+                <th>Pos / Âng</th>
                 <th>Alcance</th>
-                <th>Leitura</th>
+                <th>Bit</th>
               </tr>
             </thead>
             <tbody id="corpoTabelaLeituras"></tbody>
             <tfoot>
               <tr>
-                <td colspan="3">Total de Sensores IR Ativos</td>
+                <td colspan="3">Ativos</td>
                 <td id="totalSomaLeituras">0 / 5</td>
               </tr>
             </tfoot>
           </table>
 
-          <!-- Status dos 2 Sensores de Linha Branca sob a Lâmina (Melhoria B) -->
+          <!-- Status dos 2 Sensores de Linha Branca -->
           <div class="status-borda-strip">
-            <span>Sensores de Linha Branca (sob a lâmina):</span>
+            <span>Borda:</span>
             <div style="display:flex; gap:6px;">
-              <span class="pill-borda" id="pillBordaEsq">SL_Esq: 0 (Preto)</span>
-              <span class="pill-borda" id="pillBordaDir">SL_Dir: 0 (Preto)</span>
+              <span class="pill-borda" id="pillBordaEsq">SL_Esq: 0</span>
+              <span class="pill-borda" id="pillBordaDir">SL_Dir: 0</span>
             </div>
           </div>
         </div>
 
         <div class="painel">
           <div class="painel-cabecalho">
-            <span class="painel-titulo">Saída Digital (0/1)</span>
-            <span class="painel-sub">Clique para testar</span>
+            <span class="painel-titulo">Saída Digital</span>
+            <span class="painel-sub">Clique p/ forçar</span>
           </div>
           <div class="grafico-wrap">
             <div class="barras-grid" id="containerBarras"></div>
@@ -1272,11 +1271,11 @@
       <!-- 3. DECISÃO DO ROBÔ E MOTORES -->
       <div class="painel">
         <div class="painel-cabecalho">
-          <span class="painel-titulo" id="tituloPainelDecisao">Decisão do Robô (Editor de Condições e Ações)</span>
+          <span class="painel-titulo" id="tituloPainelDecisao">Lógica de Decisão</span>
           <div class="grupo-btn">
-            <span class="painel-sub" id="infoUltimoLado" style="margin-right:6px;">Último lado visto: Esquerda</span>
-            <button type="button" id="btnAdicionarRegra" class="ativo">+ Nova Regra</button>
-            <button type="button" id="btnResetarRegras" class="btn-sutil">Restaurar Padrão</button>
+            <span class="painel-sub" id="infoUltimoLado" style="margin-right:6px;">Busca: Esq</span>
+            <button type="button" id="btnAdicionarRegra" class="ativo">+ Regra</button>
+            <button type="button" id="btnResetarRegras" class="btn-sutil">Padrão</button>
           </div>
         </div>
 
@@ -1321,12 +1320,12 @@
 
         <div class="regras-toolbar">
           <div class="regras-legenda">
-            <span><strong>Clique em S1–S5 para mudar a condição:</strong></span>
-            <span class="legenda-item"><span class="chip-sensor req-1" style="cursor:default;">S:1</span> Precisa estar ligado</span>
-            <span class="legenda-item"><span class="chip-sensor req-any" style="cursor:default;">S:*</span> Ignorar (Qualquer)</span>
-            <span class="legenda-item"><span class="chip-sensor req-0" style="cursor:default;">S:0</span> Precisa estar desligado</span>
+            <span>Clique em S1–S5:</span>
+            <span class="legenda-item"><span class="chip-sensor req-1" style="cursor:default;">S:1</span> Ligado</span>
+            <span class="legenda-item"><span class="chip-sensor req-any" style="cursor:default;">S:*</span> Qualquer</span>
+            <span class="legenda-item"><span class="chip-sensor req-0" style="cursor:default;">S:0</span> Desligado</span>
           </div>
-          <span style="font-size:0.72rem; color:var(--text-dim);">Avaliado de cima p/ baixo (1ª regra que bater vence)</span>
+          <span style="font-size:0.72rem; color:var(--text-dim);">Ordem de prioridade ↑</span>
         </div>
 
         <ul class="regras-grid" id="listaRegrasPrioridade"></ul>
@@ -1335,43 +1334,43 @@
       <!-- 4. POSICIONAMENTO E CALIBRAÇÃO DOS SENSORES -->
       <div class="painel">
         <div class="painel-cabecalho">
-          <span class="painel-titulo">Geometria e Calibração dos 5 Sensores no Chassi (10×10 cm)</span>
+          <span class="painel-titulo">Calibração dos Sensores (10×10 cm)</span>
           <span style="font-size:0.75rem; color:var(--text-dim);" id="infoPontosCegos">
-            Cobertura frontal: analisando...
+            Analisando...
           </span>
         </div>
 
         <!-- Barra de Presets de Montagem no Chassi -->
         <div class="grupo-btn" style="margin-bottom:8px;">
-          <span class="rotulo-mini">Montagens de Competição:</span>
-          <button type="button" data-preset="padrao" title="Clássico: 0°, 45°, 90°, 135°, 180° no perímetro">Padrão (Perímetro)</button>
-          <button type="button" data-preset="cruzado" title="Cruza S2 e S4 na frente da lâmina para travar o oponente no centro">Feixes Cruzados (Cross-Beam)</button>
-          <button type="button" data-preset="frontal" title="Todos os 5 sensores alinhados na lâmina frontal">Bateria Frontal (5 na Lâmina)</button>
-          <button type="button" data-preset="paralelo" title="S2, S3 e S4 paralelos a 90° formando uma parede laser de 10 cm + S1/S5 laterais">Cortina Paralela (3× 90°)</button>
-          <button type="button" data-preset="convergente" title="Feixes inclinados convergindo num ponto focal a 18 cm da lâmina">Pinça Convergente</button>
-          <button type="button" data-preset="sniper" title="Feixes estreitos (20°) e longo alcance (50 cm) para busca distante">Sniper (Longo Alcance)</button>
-          <button type="button" data-preset="radar360" title="S1 e S5 voltados para as diagonais traseiras para detectar oponente nas costas">Radar 360° (Defesa Costas)</button>
-          <button type="button" data-preset="cacador-esq" title="Concentra S1, S2 e S3 na frente-esquerda para disparar Força Máxima S1+S2+S3 facilmente">Caçador Esq (Foco S1+S2+S3)</button>
+          <span class="rotulo-mini">Presets:</span>
+          <button type="button" data-preset="padrao" title="Perímetro: 0°, 45°, 90°, 135°, 180°">Padrão</button>
+          <button type="button" data-preset="cruzado" title="Cruza S2 e S4 na frente da lâmina">Cruzados</button>
+          <button type="button" data-preset="frontal" title="5 sensores alinhados na lâmina frontal">Frontal</button>
+          <button type="button" data-preset="paralelo" title="S2, S3 e S4 paralelos a 90° + S1/S5 laterais">Paralelos</button>
+          <button type="button" data-preset="convergente" title="Feixes convergindo no centro">Convergente</button>
+          <button type="button" data-preset="sniper" title="Feixes estreitos e longo alcance">Sniper</button>
+          <button type="button" data-preset="radar360" title="S1 e S5 voltados para trás">360°</button>
+          <button type="button" data-preset="cacador-esq" title="Foco S1+S2+S3 na frente-esquerda">Foco Esq</button>
         </div>
 
         <!-- Barra de Ferramentas Globais + Simetria + Sensores de Linha Branca -->
         <div class="sliders-topo">
           <div class="calibracao-linha">
             <div class="grupo-btn">
-              <label class="check-simetria" title="Quando ativo, mexer em S1 espelha automaticamente em S5, e mexer em S2 espelha em S4!">
+              <label class="check-simetria" title="Espelhar S1↔S5 e S2↔S4">
                 <input type="checkbox" id="checkSimetria" checked />
-                <span>🔒 Espelhar Simetria (S1↔S5 e S2↔S4)</span>
+                <span>🔒 Simetria</span>
               </label>
-              <button type="button" id="btnSnapPerimetro" title="Encaixa todos os sensores automaticamente na borda externa do chassi 10x10 cm">🧲 Encaixar na Borda 10×10</button>
-              <button type="button" id="btnAlinharLamina" title="Alinha todos os 5 sensores na lâmina frontal (Y = -4,7 cm)">📐 Puxar Todos p/ Lâmina</button>
-              <button type="button" id="btnAtivarTodosSensores" title="Garante que todos os 5 sensores estejam ligados (ON)">✔ Ligar Todos (5/5)</button>
+              <button type="button" id="btnSnapPerimetro" title="Encaixar na borda 10×10 cm">Encaixar Borda</button>
+              <button type="button" id="btnAlinharLamina" title="Alinhar todos na lâmina frontal">Alinhar Frente</button>
+              <button type="button" id="btnAtivarTodosSensores" title="Ligar todos os 5 sensores">Ligar Todos</button>
             </div>
           </div>
 
           <div class="calibracao-controles-globais">
             <div class="global-ctrl-box">
               <div class="global-ctrl-topo">
-                <span>Abertura Global (Cones)</span>
+                <span>Abertura Global</span>
                 <span class="slider-val" id="labelFovGlobal">40°</span>
               </div>
               <input type="range" id="sliderFovGlobal" min="10" max="90" step="1" value="40" />
@@ -1379,7 +1378,7 @@
 
             <div class="global-ctrl-box">
               <div class="global-ctrl-topo">
-                <span>Alcance Global (Todos)</span>
+                <span>Alcance Global</span>
                 <span class="slider-val" id="labelAlcanceGlobal">25 cm</span>
               </div>
               <input type="range" id="sliderAlcanceGlobal" min="5" max="60" step="1" value="25" />
@@ -1387,20 +1386,20 @@
 
             <div class="global-ctrl-box">
               <div class="global-ctrl-topo">
-                <span>Leque Angular (Espalhamento)</span>
+                <span>Leque Angular</span>
                 <span class="slider-val" id="labelPassoAngularGlobal">45°</span>
               </div>
-              <input type="range" id="sliderPassoAngularGlobal" min="0" max="90" step="1" value="45" title="0° = todos apontando reto (90°) | 45° = padrão (0° a 180°) | 90° = até para trás" />
+              <input type="range" id="sliderPassoAngularGlobal" min="0" max="90" step="1" value="45" />
             </div>
 
             <div class="global-ctrl-box">
               <div class="global-ctrl-topo">
-                <span>Sensores de Borda (SL_Esq / SL_Dir)</span>
+                <span>Sensores de Borda</span>
                 <span class="slider-val" id="labelPosSensoresLinha">X: ±4,2 · Y: -4,6 cm</span>
               </div>
               <div style="display:flex; gap:5px; align-items:center;">
-                <input type="range" id="sliderLinhaX" min="1.0" max="4.8" step="0.1" value="4.2" title="Afastamento lateral dos sensores de linha branca (X)" />
-                <input type="range" id="sliderLinhaY" min="-4.9" max="4.5" step="0.1" value="-4.6" title="Posição longitudinal dos sensores de linha branca (Y)" />
+                <input type="range" id="sliderLinhaX" min="1.0" max="4.8" step="0.1" value="4.2" title="Posição X" />
+                <input type="range" id="sliderLinhaY" min="-4.9" max="4.5" step="0.1" value="-4.6" title="Posição Y" />
               </div>
             </div>
           </div>
@@ -1442,45 +1441,45 @@
 
       // Presets rápidos de ação para o seletor de cada regra
       presetsAcao: [
-        { id: 'forca_max',   rotulo: '⚡ Força máxima (255, 255)',       texto: 'Força máxima (Impacto Total)',          motorEsq: 255,  motorDir: 255 },
-        { id: 'atacar_reto', rotulo: '⬆️ Atacar reto (255, 255)',        texto: 'Atacar reto, velocidade máxima',        motorEsq: 255,  motorDir: 255 },
-        { id: 'corr_esq',    rotulo: '↖️ Ataque corrigindo Esq (200, 255)', texto: 'Ataque corrigindo leve à esquerda',  motorEsq: 200,  motorDir: 255 },
-        { id: 'corr_dir',    rotulo: '↗️ Ataque corrigindo Dir (255, 200)', texto: 'Ataque corrigindo leve à direita',   motorEsq: 255,  motorDir: 200 },
-        { id: 'curva_esq',   rotulo: '↪️ Curva p/ Esquerda (120, 255)',  texto: 'Curva à esquerda até o centro ver',     motorEsq: 120,  motorDir: 255 },
-        { id: 'curva_dir',   rotulo: '↩️ Curva p/ Direita (255, 120)',   texto: 'Curva à direita até o centro ver',      motorEsq: 255,  motorDir: 120 },
-        { id: 'fechada_esq', rotulo: '⤴️ Curva fechada Esq (0, 255)',    texto: 'Curva fechada rápida p/ esquerda',      motorEsq: 0,    motorDir: 255 },
-        { id: 'fechada_dir', rotulo: '⤵️ Curva fechada Dir (255, 0)',    texto: 'Curva fechada rápida p/ direita',       motorEsq: 255,  motorDir: 0 },
-        { id: 'giro_esq',    rotulo: '🔄 Giro no eixo Esq (-255, 255)',  texto: 'Girar no lugar p/ esquerda, rápido',    motorEsq: -255, motorDir: 255 },
-        { id: 'giro_dir',    rotulo: '🔃 Giro no eixo Dir (255, -255)',  texto: 'Girar no lugar p/ direita, rápido',     motorEsq: 255,  motorDir: -255 },
-        { id: 're_total',    rotulo: '⏪ Ré total (-255, -255)',         texto: 'Ré em potência máxima',                 motorEsq: -255, motorDir: -255 },
-        { id: 'parar',       rotulo: '⏹️ Parar motores (0, 0)',          texto: 'Parar motores (Freio)',                 motorEsq: 0,    motorDir: 0 }
+        { id: 'forca_max',   rotulo: '⚡ Força máxima (255, 255)',    texto: 'Força máxima',         motorEsq: 255,  motorDir: 255 },
+        { id: 'atacar_reto', rotulo: '⬆️ Atacar reto (255, 255)',     texto: 'Atacar reto',          motorEsq: 255,  motorDir: 255 },
+        { id: 'corr_esq',    rotulo: '↖️ Ataque Esq (200, 255)',      texto: 'Ataque leve Esq',      motorEsq: 200,  motorDir: 255 },
+        { id: 'corr_dir',    rotulo: '↗️ Ataque Dir (255, 200)',      texto: 'Ataque leve Dir',      motorEsq: 255,  motorDir: 200 },
+        { id: 'curva_esq',   rotulo: '↪️ Curva Esq (120, 255)',       texto: 'Curva à esquerda',     motorEsq: 120,  motorDir: 255 },
+        { id: 'curva_dir',   rotulo: '↩️ Curva Dir (255, 120)',       texto: 'Curva à direita',      motorEsq: 255,  motorDir: 120 },
+        { id: 'fechada_esq', rotulo: '⤴️ Fechada Esq (0, 255)',       texto: 'Curva fechada Esq',    motorEsq: 0,    motorDir: 255 },
+        { id: 'fechada_dir', rotulo: '⤵️ Fechada Dir (255, 0)',       texto: 'Curva fechada Dir',    motorEsq: 255,  motorDir: 0 },
+        { id: 'giro_esq',    rotulo: '🔄 Giro Esq (-255, 255)',       texto: 'Girar p/ esquerda',    motorEsq: -255, motorDir: 255 },
+        { id: 'giro_dir',    rotulo: '🔃 Giro Dir (255, -255)',       texto: 'Girar p/ direita',     motorEsq: 255,  motorDir: -255 },
+        { id: 're_total',    rotulo: '⏪ Ré (-255, -255)',            texto: 'Ré máxima',            motorEsq: -255, motorDir: -255 },
+        { id: 'parar',       rotulo: '⏹️ Parar (0, 0)',               texto: 'Parar',                motorEsq: 0,    motorDir: 0 }
       ],
 
       // Regras padrão do Modo 1 (Prioridade):
       // cond: [S1, S2, S3, S4, S5] onde 1 = ligado, 0 = desligado, null = * (qualquer)
       regrasPadraoPrioridade: [
-        { cond: [1, 1, 1, null, null],       texto: 'Força máxima (S1+S2+S3 ligados)',       motorEsq: 255,  motorDir: 255 },
-        { cond: [null, null, 1, null, null], texto: 'Atacar reto, velocidade máxima',        motorEsq: 255,  motorDir: 255 },
-        { cond: [null, 1, null, null, null], texto: 'Curva à esquerda até o centro ver',     motorEsq: 120,  motorDir: 255 },
-        { cond: [null, null, null, 1, null], texto: 'Curva à direita até o centro ver',      motorEsq: 255,  motorDir: 120 },
-        { cond: [1, null, null, null, null], texto: 'Girar no lugar p/ esquerda, rápido',    motorEsq: -255, motorDir: 255 },
-        { cond: [null, null, null, null, 1], texto: 'Girar no lugar p/ direita, rápido',     motorEsq: 255,  motorDir: -255 }
+        { cond: [1, 1, 1, null, null],       texto: 'Força máxima (S1+S2+S3)', motorEsq: 255,  motorDir: 255 },
+        { cond: [null, null, 1, null, null], texto: 'Atacar reto',             motorEsq: 255,  motorDir: 255 },
+        { cond: [null, 1, null, null, null], texto: 'Curva à esquerda',        motorEsq: 120,  motorDir: 255 },
+        { cond: [null, null, null, 1, null], texto: 'Curva à direita',         motorEsq: 255,  motorDir: 120 },
+        { cond: [1, null, null, null, null], texto: 'Girar p/ esquerda',       motorEsq: -255, motorDir: 255 },
+        { cond: [null, null, null, null, 1], texto: 'Girar p/ direita',        motorEsq: 255,  motorDir: -255 }
       ],
 
       // Regras padrão do Modo Engenharia (Interseção de Cones):
       regrasPadraoEngenharia: [
-        { cond: [1, 1, 1, null, null],       texto: 'Força máxima (S1+S2+S3 ligados)',       motorEsq: 255,  motorDir: 255 },
-        { cond: [null, 1, 1, 1, null],       texto: 'Força máxima (S2+S3+S4 Frontal)',       motorEsq: 255,  motorDir: 255 },
-        { cond: [null, null, 1, 1, 1],       texto: 'Força máxima (S3+S4+S5 ligados)',       motorEsq: 255,  motorDir: 255 },
-        { cond: [null, 1, 1, null, null],    texto: 'Ataque corrigindo leve à esquerda',     motorEsq: 200,  motorDir: 255 },
-        { cond: [null, null, 1, 1, null],    texto: 'Ataque corrigindo leve à direita',      motorEsq: 255,  motorDir: 200 },
-        { cond: [null, null, 1, null, null], texto: 'Atacar reto, velocidade máxima',        motorEsq: 255,  motorDir: 255 },
-        { cond: [1, 1, null, null, null],    texto: 'Curva fechada rápida p/ esquerda',      motorEsq: 0,    motorDir: 255 },
-        { cond: [null, null, null, 1, 1],    texto: 'Curva fechada rápida p/ direita',       motorEsq: 255,  motorDir: 0 },
-        { cond: [null, 1, null, null, null], texto: 'Curva média p/ esquerda',               motorEsq: 120,  motorDir: 255 },
-        { cond: [null, null, null, 1, null], texto: 'Curva média p/ direita',                motorEsq: 255,  motorDir: 120 },
-        { cond: [1, null, null, null, null], texto: 'Girar no próprio eixo p/ esquerda',     motorEsq: -255, motorDir: 255 },
-        { cond: [null, null, null, null, 1], texto: 'Girar no próprio eixo p/ direita',      motorEsq: 255,  motorDir: -255 }
+        { cond: [1, 1, 1, null, null],       texto: 'Força máxima (S1+S2+S3)', motorEsq: 255,  motorDir: 255 },
+        { cond: [null, 1, 1, 1, null],       texto: 'Força máxima (S2+S3+S4)', motorEsq: 255,  motorDir: 255 },
+        { cond: [null, null, 1, 1, 1],       texto: 'Força máxima (S3+S4+S5)', motorEsq: 255,  motorDir: 255 },
+        { cond: [null, 1, 1, null, null],    texto: 'Ataque leve Esq',         motorEsq: 200,  motorDir: 255 },
+        { cond: [null, null, 1, 1, null],    texto: 'Ataque leve Dir',         motorEsq: 255,  motorDir: 200 },
+        { cond: [null, null, 1, null, null], texto: 'Atacar reto',             motorEsq: 255,  motorDir: 255 },
+        { cond: [1, 1, null, null, null],    texto: 'Curva fechada Esq',       motorEsq: 0,    motorDir: 255 },
+        { cond: [null, null, null, 1, 1],    texto: 'Curva fechada Dir',       motorEsq: 255,  motorDir: 0 },
+        { cond: [null, 1, null, null, null], texto: 'Curva à esquerda',        motorEsq: 120,  motorDir: 255 },
+        { cond: [null, null, null, 1, null], texto: 'Curva à direita',         motorEsq: 255,  motorDir: 120 },
+        { cond: [1, null, null, null, null], texto: 'Girar p/ esquerda',       motorEsq: -255, motorDir: 255 },
+        { cond: [null, null, null, null, 1], texto: 'Girar p/ direita',        motorEsq: 255,  motorDir: -255 }
       ]
     };
 
@@ -1770,8 +1769,8 @@
         const girarDir = estado.ladoManobraBorda === 'direita';
         return {
           regra: 0,
-          sensorFoco: `Sensor de Linha (${girarDir ? 'SL_Esq' : 'SL_Dir'} no Branco)`,
-          texto: `Borda branca detectada! Ré + giro p/ ${girarDir ? 'direita' : 'esquerda'}`,
+          sensorFoco: `Borda (${girarDir ? 'SL_Esq' : 'SL_Dir'})`,
+          texto: `Borda branca: ré + giro ${girarDir ? 'Dir' : 'Esq'}`,
           motorEsq: girarDir ? -100 : -245,
           motorDir: girarDir ? -245 : -100,
           forcaMaxima: false
@@ -1794,7 +1793,7 @@
           return {
             regra: idx + 1,
             sensorFoco: formatarCondicaoRegra(r.cond),
-            texto: r.texto || 'Ação personalizada',
+            texto: r.texto || 'Ação',
             motorEsq: mEsq,
             motorDir: mDir,
             forcaMaxima
@@ -1805,8 +1804,8 @@
       const vBusca = Math.max(0, Math.min(255, Math.round(Number(estado.velBuscaPadrao) || 150)));
       return {
         regra: lista.length + 1,
-        sensorFoco: `Nenhum (Último visto: ${esq ? 'Esquerda' : 'Direita'})`,
-        texto: 'Procurar: girar para o lado onde viu por último',
+        sensorFoco: `Busca (${esq ? 'Esq' : 'Dir'})`,
+        texto: `Girar procurando (${esq ? 'Esq' : 'Dir'})`,
         motorEsq: esq ? -vBusca : vBusca,
         motorDir: esq ? vBusca : -vBusca,
         forcaMaxima: false
@@ -1997,11 +1996,11 @@
       const elInfo = document.getElementById('infoPontosCegos');
       if (elInfo) {
         if (ativos.length === 0) {
-          elInfo.innerHTML = `<span style="color:var(--red); font-weight:600;">⚠️ Todos os sensores estão desligados (OFF)!</span>`;
+          elInfo.innerHTML = `<span style="color:var(--red); font-weight:600;">⚠️ Sensores OFF</span>`;
         } else if (pontosCegos === 0) {
-          elInfo.innerHTML = `<span style="color:var(--green); font-weight:600;">✔ Sem pontos cegos (${ativos.length}/5 ON · ${intersecoes.length} interseções ciano)</span>`;
+          elInfo.innerHTML = `<span style="color:var(--green); font-weight:600;">✔ Sem pontos cegos (${ativos.length}/5 ON)</span>`;
         } else {
-          elInfo.innerHTML = `<span style="color:var(--amber); font-weight:600;">⚠️ ${pontosCegos} ponto(s) cego(s) entre cones (${ativos.length}/5 ON)</span>`;
+          elInfo.innerHTML = `<span style="color:var(--amber); font-weight:600;">⚠️ ${pontosCegos} ponto(s) cego(s) (${ativos.length}/5 ON)</span>`;
         }
       }
 
@@ -2500,8 +2499,8 @@
       const pwmBuscaStr = esq ? `-${vBusca}, +${vBusca}` : `+${vBusca}, -${vBusca}`;
 
       document.getElementById('tituloPainelDecisao').textContent = estado.modoEngenharia
-        ? `Decisão do Robô (Modo Engenharia: ${lista.length} Regras + Busca)`
-        : `Decisão do Robô (Modo Prioridade: ${lista.length} Regras + Busca)`;
+        ? `Lógica de Decisão (Interseção · ${lista.length})`
+        : `Lógica de Decisão (Prioridade · ${lista.length})`;
 
       const htmlRegras = lista.map((regra, idx) => {
         const presetAtual = descobrirPresetId(regra);
@@ -2511,10 +2510,10 @@
           const classe = val === 1 ? 'req-1' : val === 0 ? 'req-0' : 'req-any';
           const simbolo = val === 1 ? '1' : val === 0 ? '0' : '*';
           const dica = val === 1
-            ? `S${sIdx + 1} precisa estar LIGADO (1). Clique para mudar`
+            ? `S${sIdx + 1} ligado (1)`
             : val === 0
-              ? `S${sIdx + 1} precisa estar DESLIGADO (0). Clique para mudar`
-              : `S${sIdx + 1} ignorado (* = qualquer). Clique para exigir 1`;
+              ? `S${sIdx + 1} desligado (0)`
+              : `S${sIdx + 1} qualquer (*)`;
           return `<button type="button" class="chip-sensor ${classe}" data-regra-idx="${idx}" data-sensor-idx="${sIdx}" title="${dica}">S${sIdx + 1}:${simbolo}</button>`;
         }).join('');
 
@@ -2531,7 +2530,7 @@
               <select class="select-preset-acao" data-regra-idx="${idx}" title="Escolher ação rápida">
                 ${optionsHtml}
               </select>
-              <input type="text" class="input-texto-acao" data-regra-idx="${idx}" value="${escapeHtml(regra.texto)}" placeholder="Descrição da ação..." />
+              <input type="text" class="input-texto-acao" data-regra-idx="${idx}" value="${escapeHtml(regra.texto)}" placeholder="Ação..." />
             </div>
             <div class="regra-pwm-wrap">
               <span title="Motor Esquerdo (-255 a 255)">Esq:</span>
@@ -2552,13 +2551,13 @@
         <li class="regra-item" data-regra="${lista.length + 1}" id="itemRegraBusca">
           <span class="r-num" title="Executada quando nenhuma regra acima é satisfeita">Busca</span>
           <div class="chips-condicao">
-            <span style="font-size:0.74rem; color:var(--text-dim); padding:0 4px;">Se nenhuma bater (Procurar p/ último lado visto)</span>
+            <span style="font-size:0.74rem; color:var(--text-dim); padding:0 4px;">Nenhum sensor ativo</span>
           </div>
           <div class="regra-acao-wrap">
-            <span style="font-size:0.76rem; color:var(--text-dim);">Gira no próprio eixo procurando oponente</span>
+            <span style="font-size:0.76rem; color:var(--text-dim);">Girar procurando</span>
           </div>
           <div class="regra-pwm-wrap">
-            <span>Vel. Giro:</span>
+            <span>Giro:</span>
             <input type="number" min="0" max="255" step="5" id="inputVelBusca" class="input-pwm-regra" value="${vBusca}" />
             <span id="labelPwmBuscaAtual" style="min-width:68px; text-align:right;">(${pwmBuscaStr})</span>
           </div>
@@ -2707,7 +2706,7 @@
       );
       const distBorda = Math.max(0, distCentro - CONFIG.roboTamanhoCm);
       document.getElementById('infoPosicaoOponente').textContent =
-        `Distância: ${distBorda.toFixed(1).replace('.', ',')} cm`;
+        `Dist: ${distBorda.toFixed(1).replace('.', ',')} cm`;
 
       const tbody = document.getElementById('corpoTabelaLeituras');
       tbody.innerHTML = leituras.map((item) => `
@@ -2724,8 +2723,8 @@
       // Sensores de linha branca (SL_Esq / SL_Dir)
       const pEsq = document.getElementById('pillBordaEsq');
       const pDir = document.getElementById('pillBordaDir');
-      pEsq.textContent = estado.bordaEsqAtiva ? 'SL_Esq: 1 (Branco!)' : 'SL_Esq: 0 (Preto)';
-      pDir.textContent = estado.bordaDirAtiva ? 'SL_Dir: 1 (Branco!)' : 'SL_Dir: 0 (Preto)';
+      pEsq.textContent = estado.bordaEsqAtiva ? 'SL_Esq: 1' : 'SL_Esq: 0';
+      pDir.textContent = estado.bordaDirAtiva ? 'SL_Dir: 1' : 'SL_Dir: 0';
       pEsq.classList.toggle('ativa', estado.bordaEsqAtiva);
       pDir.classList.toggle('ativa', estado.bordaDirAtiva);
 
@@ -2763,10 +2762,10 @@
       btnLimpar.style.display = estado.leiturasForcadas ? 'inline-flex' : 'none';
 
       document.getElementById('infoUltimoLado').textContent =
-        `Último lado visto: ${estado.ultimoLadoVisto === 'esquerda' ? 'Esquerda' : 'Direita'}`;
+        `Busca: ${estado.ultimoLadoVisto === 'esquerda' ? 'Esq' : 'Dir'}`;
       document.getElementById('regraAtivaBadge').textContent = decisao.regra === 0
-        ? `Sobrevivência · ${decisao.sensorFoco}`
-        : `${estado.modoEngenharia ? 'Regra #' + decisao.regra : 'Prioridade #' + decisao.regra} · ${decisao.sensorFoco}`;
+        ? `Borda · ${decisao.sensorFoco}`
+        : `Regra #${decisao.regra} · ${decisao.sensorFoco}`;
       document.getElementById('textoAcaoAtual').textContent = decisao.texto;
 
       atualizarCardMotor('Esq', decisao.motorEsq);
@@ -2777,11 +2776,11 @@
         const elFeixe = document.getElementById(`labelFeixe_${idx}`);
         if (elFeixe) {
           if (item.habilitado === false) {
-            elFeixe.innerHTML = `<span style="color:var(--red);">OFF (Desativado)</span>`;
+            elFeixe.innerHTML = `<span style="color:var(--red);">OFF</span>`;
           } else if (item.leitura === 1 && Number.isFinite(item.distanciaFeixeCm)) {
-            elFeixe.innerHTML = `<span class="feixe-ativo">⚡ Reflexo a ${item.distanciaFeixeCm.toFixed(1).replace('.', ',')} cm</span>`;
+            elFeixe.innerHTML = `<span class="feixe-ativo">⚡ ${item.distanciaFeixeCm.toFixed(1).replace('.', ',')} cm</span>`;
           } else {
-            elFeixe.textContent = 'Livre (0)';
+            elFeixe.textContent = 'Livre';
           }
         }
       });
@@ -2978,15 +2977,15 @@
             </div>
 
             <div class="slider-linha">
-              <span>Direção (-90° a 270°)</span>
+              <span>Direção</span>
             </div>
             <input type="range" min="-90" max="270" step="1" value="${s.angulo}" data-idx="${idx}" class="slider-angulo" />
             <div class="mini-btns-row">
-              <button type="button" class="btn-mini-snap" data-snap-ang="0" data-idx="${idx}" title="Apontar p/ Esquerda (0°)">0°</button>
-              <button type="button" class="btn-mini-snap" data-snap-ang="45" data-idx="${idx}" title="Diagonal Esquerda (45°)">45°</button>
+              <button type="button" class="btn-mini-snap" data-snap-ang="0" data-idx="${idx}" title="Esquerda (0°)">0°</button>
+              <button type="button" class="btn-mini-snap" data-snap-ang="45" data-idx="${idx}" title="Diag. Esq (45°)">45°</button>
               <button type="button" class="btn-mini-snap" data-snap-ang="90" data-idx="${idx}" title="Frente (90°)">90°</button>
-              <button type="button" class="btn-mini-snap" data-snap-ang="135" data-idx="${idx}" title="Diagonal Direita (135°)">135°</button>
-              <button type="button" class="btn-mini-snap" data-snap-ang="180" data-idx="${idx}" title="Apontar p/ Direita (180°)">180°</button>
+              <button type="button" class="btn-mini-snap" data-snap-ang="135" data-idx="${idx}" title="Diag. Dir (135°)">135°</button>
+              <button type="button" class="btn-mini-snap" data-snap-ang="180" data-idx="${idx}" title="Direita (180°)">180°</button>
             </div>
 
             <div class="slider-linha">
@@ -2994,14 +2993,14 @@
               <span class="slider-val" id="labelPos_${idx}">(${s.offsetLocalCm.x.toFixed(1)}, ${s.offsetLocalCm.y.toFixed(1)}) cm</span>
             </div>
             <div style="display:flex; gap:4px;">
-              <input type="range" min="-4.9" max="4.9" step="0.2" value="${s.offsetLocalCm.x}" data-idx="${idx}" class="slider-pos-x" title="Posição Lateral X (-4,9 a +4,9 cm)" />
-              <input type="range" min="-4.9" max="4.9" step="0.2" value="${s.offsetLocalCm.y}" data-idx="${idx}" class="slider-pos-y" title="Posição Longitudinal Y (-4,9 = Lâmina, +4,9 = Traseira)" />
+              <input type="range" min="-4.9" max="4.9" step="0.2" value="${s.offsetLocalCm.x}" data-idx="${idx}" class="slider-pos-x" title="Posição X" />
+              <input type="range" min="-4.9" max="4.9" step="0.2" value="${s.offsetLocalCm.y}" data-idx="${idx}" class="slider-pos-y" title="Posição Y" />
             </div>
             <div class="mini-btns-row">
-              <button type="button" class="btn-mini-snap" data-snap-pos="lamina" data-idx="${idx}" title="Fixar na lâmina frontal (Y = -4,7)">Lâmina</button>
-              <button type="button" class="btn-mini-snap" data-snap-pos="quina" data-idx="${idx}" title="Fixar na quina frontal">Quina</button>
-              <button type="button" class="btn-mini-snap" data-snap-pos="lateral" data-idx="${idx}" title="Fixar na lateral do chassi">Lateral</button>
-              <button type="button" class="btn-mini-snap" data-snap-pos="centro" data-idx="${idx}" title="Centralizar no eixo X (X = 0)">X=0</button>
+              <button type="button" class="btn-mini-snap" data-snap-pos="lamina" data-idx="${idx}" title="Lâmina frontal">Lâmina</button>
+              <button type="button" class="btn-mini-snap" data-snap-pos="quina" data-idx="${idx}" title="Quina frontal">Quina</button>
+              <button type="button" class="btn-mini-snap" data-snap-pos="lateral" data-idx="${idx}" title="Lateral">Lateral</button>
+              <button type="button" class="btn-mini-snap" data-snap-pos="centro" data-idx="${idx}" title="Centro (X = 0)">X=0</button>
             </div>
 
             <div class="slider-linha">
@@ -3011,14 +3010,14 @@
             <input type="range" min="5" max="60" step="1" value="${s.alcanceCm}" data-idx="${idx}" class="slider-alcance" />
 
             <div class="slider-linha">
-              <span>Abertura Cone</span>
+              <span>Abertura</span>
               <span class="slider-val" id="labelFov_${idx}">${s.fov}°</span>
             </div>
             <input type="range" min="10" max="90" step="1" value="${s.fov}" data-idx="${idx}" class="slider-fov-ind" />
 
             <div class="rodape-feixe-card">
-              <span>Feixe IR:</span>
-              <span id="labelFeixe_${idx}">Livre (0)</span>
+              <span>Feixe:</span>
+              <span id="labelFeixe_${idx}">Livre</span>
             </div>
           </div>
         `;
@@ -3293,15 +3292,9 @@
       btnModoEng.classList.toggle('modo-ativo', ativo);
 
       if (!ativo) {
-        txtExplicacao.innerHTML = `
-          <strong>Modo 1 — Prioridade Customizável:</strong><br />
-          Avalia suas regras de cima para baixo (a regra #1 <code>S1+S2+S3</code> dispara <strong>Força máxima 255, 255</strong>). Você pode clicar nos botões <code>S1..S5</code> abaixo para mudar qualquer condição ou ação!
-        `;
+        txtExplicacao.innerHTML = `<strong>Modo Prioridade:</strong> avalia as regras em ordem (1ª que bater vence).`;
       } else {
-        txtExplicacao.innerHTML = `
-          <strong>Modo Engenharia — Interseção de Cones Customizável:</strong><br />
-          Aproveita quando múltiplos sensores ativam juntos (ex.: <code>S1+S2+S3</code>, <code>S2+S3</code>) para criar <strong>zonas intermediárias</strong>. Edite qualquer condição ou velocidade abaixo!
-        `;
+        txtExplicacao.innerHTML = `<strong>Modo Interseção:</strong> combina sensores vizinhos ativos.`;
       }
       renderizarEditorRegras();
       if (!estado.simulandoMovimento) executarCicloSimulacao();
@@ -3314,7 +3307,7 @@
       const lista = obterListaRegrasAtiva();
       lista.unshift({
         cond: [1, 1, 1, null, null],
-        texto: 'Nova regra personalizada',
+        texto: 'Nova regra',
         motorEsq: 255,
         motorDir: 255
       });
@@ -3338,7 +3331,7 @@
       estado.simulandoMovimento = rodar;
       estado.ultimoTimestamp = 0;
       btnPlay.classList.toggle('rodando', rodar);
-      btnPlay.textContent = rodar ? '⏸ Pausar Física' : '▶ Rodar Física (Play)';
+      btnPlay.textContent = rodar ? '⏸ Pausar' : '▶ Play';
       if (rodar) {
         estado.leiturasForcadas = null;
         if (estado.ipponAlcancado) {
@@ -3376,7 +3369,7 @@
     btnToggleCones.addEventListener('click', () => {
       estado.mostrarCones = !estado.mostrarCones;
       btnToggleCones.classList.toggle('ativo', estado.mostrarCones);
-      btnToggleCones.textContent = estado.mostrarCones ? 'Cones Visíveis' : 'Mostrar Cones';
+      btnToggleCones.textContent = 'Cones';
       if (!estado.simulandoMovimento) executarCicloSimulacao();
     });
 
@@ -3483,7 +3476,7 @@
       document.getElementById('labelPosSensoresLinha').textContent = 'X: ±4,2 · Y: -4,6 cm';
       document.getElementById('labelGiroRobo').textContent = '0°';
       btnToggleCones.classList.add('ativo');
-      btnToggleCones.textContent = 'Cones Visíveis';
+      btnToggleCones.textContent = 'Cones';
 
       criarSlidersSensores();
       renderizarEditorRegras();
