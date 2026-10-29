@@ -1424,6 +1424,7 @@
       shikiriDistanciaCm: 10,    // Distância entre as duas linhas Shikiri-sen (10 cm)
       roboTamanhoCm: 10,         // Robô 10 x 10 cm (500 g)
       oponenteTamanhoCm: 10,     // Oponente 10 x 10 cm (500 g)
+      minSensorYCm: -2.0,        // Atrás da lâmina frontal chanfrada (a lâmina vai de Y=-5,0 até Y=-2,6 cm)
       fovPadraoGraus: 40,
 
       // Sensores de linha branca (QRE1113/TCRT5000) sob os cantos frontais da lâmina
@@ -1433,11 +1434,11 @@
       },
 
       sensoresPadrao: [
-        { id: 'S1', nome: 'Frente Esq++', angulo: 35,  fov: 35, alcanceCm: 18, offsetLocalCm: { x: -4.4, y: -4.6 } },
-        { id: 'S2', nome: 'Frente Esq',   angulo: 65,  fov: 35, alcanceCm: 25, offsetLocalCm: { x: -2.2, y: -4.7 } },
-        { id: 'S3', nome: 'Centro',       angulo: 90,  fov: 35, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -4.7 } },
-        { id: 'S4', nome: 'Frente Dir',   angulo: 115, fov: 35, alcanceCm: 25, offsetLocalCm: { x:  2.2, y: -4.7 } },
-        { id: 'S5', nome: 'Frente Dir++', angulo: 145, fov: 35, alcanceCm: 18, offsetLocalCm: { x:  4.4, y: -4.6 } }
+        { id: 'S1', nome: 'Frente Esq++', angulo: 45,  fov: 38, alcanceCm: 20, offsetLocalCm: { x: -4.2, y: -2.0 } },
+        { id: 'S2', nome: 'Frente Esq',   angulo: 70,  fov: 38, alcanceCm: 26, offsetLocalCm: { x: -2.1, y: -2.0 } },
+        { id: 'S3', nome: 'Centro',       angulo: 90,  fov: 38, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -2.0 } },
+        { id: 'S4', nome: 'Frente Dir',   angulo: 110, fov: 38, alcanceCm: 26, offsetLocalCm: { x:  2.1, y: -2.0 } },
+        { id: 'S5', nome: 'Frente Dir++', angulo: 135, fov: 38, alcanceCm: 20, offsetLocalCm: { x:  4.2, y: -2.0 } }
       ],
 
       // Presets rápidos de ação para o seletor de cada regra
@@ -2924,9 +2925,9 @@
       if (estado.alvoArraste.tipo === 'sensor') {
         const idx = estado.alvoArraste.indice;
         const local = arenaParaLocalRoboCm(xCm, yCm);
-        const limChassi = 4.9;
+        const limChassi = 4.6;
         const nx = Math.max(-limChassi, Math.min(limChassi, local.x));
-        const ny = Math.max(-limChassi, Math.min(limChassi, local.y));
+        const ny = Math.max(CONFIG.minSensorYCm, Math.min(limChassi, local.y));
         estado.sensores[idx].offsetLocalCm.x = Number(nx.toFixed(1));
         estado.sensores[idx].offsetLocalCm.y = Number(ny.toFixed(1));
         sincronizarSlidersSensor(idx);
@@ -3064,12 +3065,12 @@
               <span class="slider-val" id="labelPos_${idx}">(${s.offsetLocalCm.x.toFixed(1)}, ${s.offsetLocalCm.y.toFixed(1)}) cm</span>
             </div>
             <div style="display:flex; gap:4px;">
-              <input type="range" min="-4.9" max="4.9" step="0.2" value="${s.offsetLocalCm.x}" data-idx="${idx}" class="slider-pos-x" title="Posição X" />
-              <input type="range" min="-4.9" max="4.9" step="0.2" value="${s.offsetLocalCm.y}" data-idx="${idx}" class="slider-pos-y" title="Posição Y" />
+              <input type="range" min="-4.6" max="4.6" step="0.2" value="${s.offsetLocalCm.x}" data-idx="${idx}" class="slider-pos-x" title="Posição X" />
+              <input type="range" min="-2.0" max="4.6" step="0.2" value="${s.offsetLocalCm.y}" data-idx="${idx}" class="slider-pos-y" title="Posição Y (atrás da lâmina)" />
             </div>
             <div class="mini-btns-row">
-              <button type="button" class="btn-mini-snap" data-snap-pos="lamina" data-idx="${idx}" title="Lâmina frontal">Lâmina</button>
-              <button type="button" class="btn-mini-snap" data-snap-pos="quina" data-idx="${idx}" title="Quina frontal">Quina</button>
+              <button type="button" class="btn-mini-snap" data-snap-pos="lamina" data-idx="${idx}" title="Frente do chassi (atrás da lâmina)">Frente</button>
+              <button type="button" class="btn-mini-snap" data-snap-pos="quina" data-idx="${idx}" title="Quina frontal do chassi">Quina</button>
               <button type="button" class="btn-mini-snap" data-snap-pos="lateral" data-idx="${idx}" title="Lateral">Lateral</button>
               <button type="button" class="btn-mini-snap" data-snap-pos="centro" data-idx="${idx}" title="Centro (X = 0)">X=0</button>
             </div>
@@ -3160,13 +3161,13 @@
           const s = estado.sensores[idx];
           const sinalX = idx < 2 ? -1 : idx > 2 ? 1 : (s.offsetLocalCm.x < 0 ? -1 : 1);
           if (tipo === 'lamina') {
-            s.offsetLocalCm.y = -4.7;
+            s.offsetLocalCm.y = CONFIG.minSensorYCm;
           } else if (tipo === 'quina') {
-            s.offsetLocalCm.x = Number((sinalX * 4.4).toFixed(1));
-            s.offsetLocalCm.y = -4.4;
+            s.offsetLocalCm.x = Number((sinalX * 4.2).toFixed(1));
+            s.offsetLocalCm.y = CONFIG.minSensorYCm;
           } else if (tipo === 'lateral') {
-            s.offsetLocalCm.x = Number((sinalX * 4.6).toFixed(1));
-            s.offsetLocalCm.y = -0.4;
+            s.offsetLocalCm.x = Number((sinalX * 4.4).toFixed(1));
+            s.offsetLocalCm.y = 0.0;
           } else if (tipo === 'centro') {
             s.offsetLocalCm.x = 0.0;
           }
@@ -3209,68 +3210,60 @@
           estado.sensores = JSON.parse(JSON.stringify(CONFIG.sensoresPadrao));
         } else if (p === 'perimetro') {
           estado.sensores = [
-            { id: 'S1', nome: 'Lat. Esq',  angulo: 0,   fov: 40, alcanceCm: 10, offsetLocalCm: { x: -4.6, y: -0.4 } },
-            { id: 'S2', nome: 'Diag. Esq', angulo: 45,  fov: 40, alcanceCm: 20, offsetLocalCm: { x: -4.4, y: -4.4 } },
-            { id: 'S3', nome: 'Frente',    angulo: 90,  fov: 40, alcanceCm: 30, offsetLocalCm: { x:  0.0, y: -4.7 } },
-            { id: 'S4', nome: 'Diag. Dir', angulo: 135, fov: 40, alcanceCm: 20, offsetLocalCm: { x:  4.4, y: -4.4 } },
-            { id: 'S5', nome: 'Lat. Dir',  angulo: 180, fov: 40, alcanceCm: 10, offsetLocalCm: { x:  4.6, y: -0.4 } }
+            { id: 'S1', nome: 'Lat. Esq',  angulo: 0,   fov: 40, alcanceCm: 10, offsetLocalCm: { x: -4.4, y:  0.4 } },
+            { id: 'S2', nome: 'Diag. Esq', angulo: 45,  fov: 40, alcanceCm: 20, offsetLocalCm: { x: -4.2, y: -2.0 } },
+            { id: 'S3', nome: 'Frente',    angulo: 90,  fov: 40, alcanceCm: 30, offsetLocalCm: { x:  0.0, y: -2.0 } },
+            { id: 'S4', nome: 'Diag. Dir', angulo: 135, fov: 40, alcanceCm: 20, offsetLocalCm: { x:  4.2, y: -2.0 } },
+            { id: 'S5', nome: 'Lat. Dir',  angulo: 180, fov: 40, alcanceCm: 10, offsetLocalCm: { x:  4.4, y:  0.4 } }
           ];
         } else if (p === 'cruzado') {
           estado.sensores = [
-            { id: 'S1', nome: 'Lat. Esq',  angulo: 0,   fov: 40, alcanceCm: 12, offsetLocalCm: { x: -4.6, y: 0.0 } },
-            { id: 'S2', nome: 'Cruz. Esq', angulo: 72,  fov: 32, alcanceCm: 26, offsetLocalCm: { x:  3.6, y: -4.6 } },
-            { id: 'S3', nome: 'Frente',    angulo: 90,  fov: 35, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -4.7 } },
-            { id: 'S4', nome: 'Cruz. Dir', angulo: 108, fov: 32, alcanceCm: 26, offsetLocalCm: { x: -3.6, y: -4.6 } },
-            { id: 'S5', nome: 'Lat. Dir',  angulo: 180, fov: 40, alcanceCm: 12, offsetLocalCm: { x:  4.6, y: 0.0 } }
-          ];
-        } else if (p === 'frontal') {
-          estado.sensores = [
-            { id: 'S1', nome: 'Frente Esq++', angulo: 35,  fov: 35, alcanceCm: 18, offsetLocalCm: { x: -4.4, y: -4.6 } },
-            { id: 'S2', nome: 'Frente Esq',   angulo: 65,  fov: 35, alcanceCm: 25, offsetLocalCm: { x: -2.2, y: -4.7 } },
-            { id: 'S3', nome: 'Centro',       angulo: 90,  fov: 35, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -4.7 } },
-            { id: 'S4', nome: 'Frente Dir',   angulo: 115, fov: 35, alcanceCm: 25, offsetLocalCm: { x:  2.2, y: -4.7 } },
-            { id: 'S5', nome: 'Frente Dir++', angulo: 145, fov: 35, alcanceCm: 18, offsetLocalCm: { x:  4.4, y: -4.6 } }
+            { id: 'S1', nome: 'Lat. Esq',  angulo: 0,   fov: 40, alcanceCm: 12, offsetLocalCm: { x: -4.4, y:  0.4 } },
+            { id: 'S2', nome: 'Cruz. Esq', angulo: 72,  fov: 32, alcanceCm: 26, offsetLocalCm: { x:  3.4, y: -2.0 } },
+            { id: 'S3', nome: 'Frente',    angulo: 90,  fov: 35, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -2.0 } },
+            { id: 'S4', nome: 'Cruz. Dir', angulo: 108, fov: 32, alcanceCm: 26, offsetLocalCm: { x: -3.4, y: -2.0 } },
+            { id: 'S5', nome: 'Lat. Dir',  angulo: 180, fov: 40, alcanceCm: 12, offsetLocalCm: { x:  4.4, y:  0.4 } }
           ];
         } else if (p === 'paralelo') {
           estado.sensores = [
-            { id: 'S1', nome: 'Lat. Esq',     angulo: 0,   fov: 40, alcanceCm: 12, offsetLocalCm: { x: -4.6, y: 0.0 } },
-            { id: 'S2', nome: 'Reto Esq',     angulo: 90,  fov: 24, alcanceCm: 30, offsetLocalCm: { x: -3.8, y: -4.7 } },
-            { id: 'S3', nome: 'Reto Centro',  angulo: 90,  fov: 24, alcanceCm: 34, offsetLocalCm: { x:  0.0, y: -4.7 } },
-            { id: 'S4', nome: 'Reto Dir',     angulo: 90,  fov: 24, alcanceCm: 30, offsetLocalCm: { x:  3.8, y: -4.7 } },
-            { id: 'S5', nome: 'Lat. Dir',     angulo: 180, fov: 40, alcanceCm: 12, offsetLocalCm: { x:  4.6, y: 0.0 } }
+            { id: 'S1', nome: 'Lat. Esq',     angulo: 0,   fov: 40, alcanceCm: 12, offsetLocalCm: { x: -4.4, y:  0.4 } },
+            { id: 'S2', nome: 'Reto Esq',     angulo: 90,  fov: 24, alcanceCm: 30, offsetLocalCm: { x: -3.6, y: -2.0 } },
+            { id: 'S3', nome: 'Reto Centro',  angulo: 90,  fov: 24, alcanceCm: 34, offsetLocalCm: { x:  0.0, y: -2.0 } },
+            { id: 'S4', nome: 'Reto Dir',     angulo: 90,  fov: 24, alcanceCm: 30, offsetLocalCm: { x:  3.6, y: -2.0 } },
+            { id: 'S5', nome: 'Lat. Dir',     angulo: 180, fov: 40, alcanceCm: 12, offsetLocalCm: { x:  4.4, y:  0.4 } }
           ];
         } else if (p === 'convergente') {
           estado.sensores = [
-            { id: 'S1', nome: 'Conv. Esq++',  angulo: 65,  fov: 32, alcanceCm: 22, offsetLocalCm: { x: -4.5, y: -4.5 } },
-            { id: 'S2', nome: 'Conv. Esq',    angulo: 80,  fov: 30, alcanceCm: 28, offsetLocalCm: { x: -2.4, y: -4.7 } },
-            { id: 'S3', nome: 'Centro Focal', angulo: 90,  fov: 30, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -4.7 } },
-            { id: 'S4', nome: 'Conv. Dir',    angulo: 100, fov: 30, alcanceCm: 28, offsetLocalCm: { x:  2.4, y: -4.7 } },
-            { id: 'S5', nome: 'Conv. Dir++',  angulo: 115, fov: 32, alcanceCm: 22, offsetLocalCm: { x:  4.5, y: -4.5 } }
+            { id: 'S1', nome: 'Conv. Esq++',  angulo: 65,  fov: 32, alcanceCm: 22, offsetLocalCm: { x: -4.2, y: -2.0 } },
+            { id: 'S2', nome: 'Conv. Esq',    angulo: 80,  fov: 30, alcanceCm: 28, offsetLocalCm: { x: -2.1, y: -2.0 } },
+            { id: 'S3', nome: 'Centro Focal', angulo: 90,  fov: 30, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -2.0 } },
+            { id: 'S4', nome: 'Conv. Dir',    angulo: 100, fov: 30, alcanceCm: 28, offsetLocalCm: { x:  2.1, y: -2.0 } },
+            { id: 'S5', nome: 'Conv. Dir++',  angulo: 115, fov: 32, alcanceCm: 22, offsetLocalCm: { x:  4.2, y: -2.0 } }
           ];
         } else if (p === 'sniper') {
           estado.sensores = [
-            { id: 'S1', nome: 'Busca Esq',    angulo: 20,  fov: 22, alcanceCm: 38, offsetLocalCm: { x: -4.5, y: -3.0 } },
-            { id: 'S2', nome: 'Sniper Esq',   angulo: 75,  fov: 18, alcanceCm: 48, offsetLocalCm: { x: -2.5, y: -4.7 } },
-            { id: 'S3', nome: 'Sniper Centro',angulo: 90,  fov: 16, alcanceCm: 55, offsetLocalCm: { x:  0.0, y: -4.7 } },
-            { id: 'S4', nome: 'Sniper Dir',   angulo: 105, fov: 18, alcanceCm: 48, offsetLocalCm: { x:  2.5, y: -4.7 } },
-            { id: 'S5', nome: 'Busca Dir',    angulo: 160, fov: 22, alcanceCm: 38, offsetLocalCm: { x:  4.5, y: -3.0 } }
+            { id: 'S1', nome: 'Busca Esq',    angulo: 20,  fov: 22, alcanceCm: 38, offsetLocalCm: { x: -4.4, y: -1.0 } },
+            { id: 'S2', nome: 'Sniper Esq',   angulo: 75,  fov: 18, alcanceCm: 48, offsetLocalCm: { x: -2.2, y: -2.0 } },
+            { id: 'S3', nome: 'Sniper Centro',angulo: 90,  fov: 16, alcanceCm: 55, offsetLocalCm: { x:  0.0, y: -2.0 } },
+            { id: 'S4', nome: 'Sniper Dir',   angulo: 105, fov: 18, alcanceCm: 48, offsetLocalCm: { x:  2.2, y: -2.0 } },
+            { id: 'S5', nome: 'Busca Dir',    angulo: 160, fov: 22, alcanceCm: 38, offsetLocalCm: { x:  4.4, y: -1.0 } }
           ];
         } else if (p === 'radar360') {
           estado.sensores = [
-            { id: 'S1', nome: 'Costas Esq',   angulo: -45, fov: 50, alcanceCm: 18, offsetLocalCm: { x: -4.5, y:  4.2 } },
-            { id: 'S2', nome: 'Diag. Esq',    angulo: 45,  fov: 45, alcanceCm: 24, offsetLocalCm: { x: -4.4, y: -4.4 } },
-            { id: 'S3', nome: 'Frente',       angulo: 90,  fov: 45, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -4.7 } },
-            { id: 'S4', nome: 'Diag. Dir',    angulo: 135, fov: 45, alcanceCm: 24, offsetLocalCm: { x:  4.4, y: -4.4 } },
-            { id: 'S5', nome: 'Costas Dir',   angulo: 225, fov: 50, alcanceCm: 18, offsetLocalCm: { x:  4.5, y:  4.2 } }
+            { id: 'S1', nome: 'Costas Esq',   angulo: -45, fov: 50, alcanceCm: 18, offsetLocalCm: { x: -4.4, y:  4.2 } },
+            { id: 'S2', nome: 'Diag. Esq',    angulo: 45,  fov: 45, alcanceCm: 24, offsetLocalCm: { x: -4.2, y: -2.0 } },
+            { id: 'S3', nome: 'Frente',       angulo: 90,  fov: 45, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -2.0 } },
+            { id: 'S4', nome: 'Diag. Dir',    angulo: 135, fov: 45, alcanceCm: 24, offsetLocalCm: { x:  4.2, y: -2.0 } },
+            { id: 'S5', nome: 'Costas Dir',   angulo: 225, fov: 50, alcanceCm: 18, offsetLocalCm: { x:  4.4, y:  4.2 } }
           ];
         } else if (p === 'cacador-esq') {
           // Otimizado para disparar S1+S2+S3 juntos na frente/esquerda (Força Máxima!)
           estado.sensores = [
-            { id: 'S1', nome: 'Foco Esq 1',   angulo: 68,  fov: 42, alcanceCm: 26, offsetLocalCm: { x: -4.4, y: -4.6 } },
-            { id: 'S2', nome: 'Foco Esq 2',   angulo: 82,  fov: 42, alcanceCm: 28, offsetLocalCm: { x: -2.2, y: -4.7 } },
-            { id: 'S3', nome: 'Foco Centro',  angulo: 90,  fov: 42, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -4.7 } },
-            { id: 'S4', nome: 'Diag. Dir',    angulo: 130, fov: 40, alcanceCm: 22, offsetLocalCm: { x:  4.2, y: -4.4 } },
-            { id: 'S5', nome: 'Lat. Dir',     angulo: 180, fov: 40, alcanceCm: 14, offsetLocalCm: { x:  4.6, y: -0.4 } }
+            { id: 'S1', nome: 'Foco Esq 1',   angulo: 68,  fov: 42, alcanceCm: 26, offsetLocalCm: { x: -4.2, y: -2.0 } },
+            { id: 'S2', nome: 'Foco Esq 2',   angulo: 82,  fov: 42, alcanceCm: 28, offsetLocalCm: { x: -2.1, y: -2.0 } },
+            { id: 'S3', nome: 'Foco Centro',  angulo: 90,  fov: 42, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -2.0 } },
+            { id: 'S4', nome: 'Diag. Dir',    angulo: 130, fov: 40, alcanceCm: 22, offsetLocalCm: { x:  4.2, y: -2.0 } },
+            { id: 'S5', nome: 'Lat. Dir',     angulo: 180, fov: 40, alcanceCm: 14, offsetLocalCm: { x:  4.4, y:  0.4 } }
           ];
         }
         criarSlidersSensores();
@@ -3288,24 +3281,24 @@
     });
 
     document.getElementById('btnSnapPerimetro').addEventListener('click', () => {
-      const lim = 4.6;
+      const lim = 4.4;
       estado.sensores.forEach((s, idx) => {
         const rad = grausParaRad(s.angulo);
         const dx = -Math.cos(rad);
         const dy = -Math.sin(rad);
         const escala = lim / Math.max(Math.abs(dx), Math.abs(dy), 0.001);
         s.offsetLocalCm.x = Number((dx * escala).toFixed(1));
-        s.offsetLocalCm.y = Number((dy * escala).toFixed(1));
+        s.offsetLocalCm.y = Number(Math.max(CONFIG.minSensorYCm, dy * escala).toFixed(1));
         sincronizarSlidersSensor(idx);
       });
       if (!estado.simulandoMovimento) executarCicloSimulacao();
     });
 
     document.getElementById('btnAlinharLamina').addEventListener('click', () => {
-      const xs = [-4.4, -2.2, 0.0, 2.2, 4.4];
+      const xs = [-4.2, -2.1, 0.0, 2.1, 4.2];
       estado.sensores.forEach((s, idx) => {
         s.offsetLocalCm.x = xs[idx];
-        s.offsetLocalCm.y = -4.7;
+        s.offsetLocalCm.y = CONFIG.minSensorYCm;
         sincronizarSlidersSensor(idx);
       });
       if (!estado.simulandoMovimento) executarCicloSimulacao();
@@ -3514,10 +3507,10 @@
           estado.oponenteCm = { x: 0, y: -10.5 };
           estado.rotacaoOponenteGraus = 180;
         } else if (c === 's1-s2-s3') {
-          // Posiciona o oponente 10x10 cm na quina frontal-esquerda onde S1, S2 e S3 detectam juntos!
+          // Posiciona o oponente 10x10 cm na frente-esquerda onde S1, S2 e S3 detectam juntos!
           estado.roboCm = { x: 0, y: 10.5 };
           estado.rotacaoRoboGraus = 0;
-          estado.oponenteCm = { x: -5.4, y: 3.5 };
+          estado.oponenteCm = { x: -4.8, y: 1.5 };
         } else if (c === 'diagonal-esquerda') {
           posicionarNoReferencial(1, 11);
         } else if (c === 'intersecao') {
