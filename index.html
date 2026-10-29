@@ -1,0 +1,3498 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Simulador Mini Sumô — Física 2D e Sensores FX-S50</title>
+  <style>
+    :root {
+      --bg: #090b10;
+      --surface: #11141d;
+      --surface-2: #171b26;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --text: #f3f4f6;
+      --text-dim: #8b95a7;
+      --green: #10b981;
+      --green-soft: rgba(16, 185, 129, 0.14);
+      --blue: #38bdf8;
+      --blue-soft: rgba(56, 189, 248, 0.14);
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding: 14px 20px;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      max-width: 1560px;
+      margin: 0 auto 14px auto;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .titulo-grupo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    header h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+    }
+
+    .tag-modelo {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--blue);
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+
+    .seletor-modo {
+      display: inline-flex;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 4px;
+    }
+
+    .seletor-modo button {
+      border: none;
+      background: transparent;
+      color: var(--text-dim);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .seletor-modo button.modo-ativo {
+      background: var(--blue-soft);
+      color: var(--blue);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    .layout {
+      max-width: 1560px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(410px, 570px) 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    @media (max-width: 1060px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      body {
+        padding: 10px;
+      }
+    }
+
+    .painel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+
+    .painel-cabecalho {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .painel-titulo {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+    }
+
+    .painel-sub {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .badge-cronometro {
+      font-family: "JetBrains Mono", "Consolas", monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--blue);
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    .coluna-esquerda {
+      position: sticky;
+      top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @media (max-width: 1060px) {
+      .coluna-esquerda {
+        position: static;
+      }
+    }
+
+    .canvas-wrap {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: 550px;
+      margin: 0 auto;
+      background: #06080c;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    canvas:active {
+      cursor: grabbing;
+    }
+
+    .toast-arena {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(16, 185, 129, 0.94);
+      color: #052e16;
+      font-weight: 800;
+      font-size: 0.88rem;
+      padding: 6px 14px;
+      border-radius: 999px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+      white-space: nowrap;
+    }
+
+    .toast-arena.visivel {
+      opacity: 1;
+    }
+
+    .dica-interacao {
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .dica-interacao strong {
+      color: var(--text);
+    }
+
+    .barra-controles {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 8px;
+      margin-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    .grupo-btn {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      align-items: center;
+    }
+
+    .rotulo-mini {
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-right: 2px;
+    }
+
+    button, select {
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 5px 9px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+    }
+
+    button:hover, select:hover {
+      background: #222838;
+      border-color: var(--border-strong);
+    }
+
+    button.ativo {
+      background: var(--green-soft);
+      border-color: rgba(16, 185, 129, 0.45);
+      color: #6ee7b7;
+    }
+
+    button.btn-play {
+      background: rgba(16, 185, 129, 0.18);
+      border-color: var(--green);
+      color: #ecfdf5;
+      font-weight: 700;
+      padding: 6px 14px;
+    }
+
+    button.btn-play.rodando {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--amber);
+      color: #fef3c7;
+    }
+
+    button.btn-sutil {
+      background: transparent;
+      color: var(--text-dim);
+    }
+
+    button.btn-sutil:hover {
+      color: var(--text);
+      background: var(--surface-2);
+    }
+
+    button.btn-demo-alerta {
+      color: #fcd34d;
+      border-color: rgba(245, 158, 11, 0.3);
+      background: rgba(245, 158, 11, 0.08);
+    }
+
+    button.btn-torneio {
+      border-color: rgba(56, 189, 248, 0.3);
+      color: #bae6fd;
+    }
+
+    .coluna-direita {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .resumo-topo {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 16px;
+      align-items: center;
+    }
+
+    @media (max-width: 720px) {
+      .resumo-topo {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .explicacao-digital {
+      font-size: 0.83rem;
+      color: var(--text-dim);
+      line-height: 1.45;
+    }
+
+    .explicacao-digital strong {
+      color: var(--text);
+    }
+
+    .bloco-destaque {
+      text-align: right;
+      padding-left: 16px;
+      border-left: 1px solid var(--border);
+      min-width: 145px;
+    }
+
+    @media (max-width: 720px) {
+      .bloco-destaque {
+        text-align: left;
+        padding-left: 0;
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding-top: 8px;
+      }
+    }
+
+    .bloco-destaque .rotulo {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .bloco-destaque .valor-setor {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--green);
+      margin-top: 2px;
+    }
+
+    .bloco-destaque .valor-angulo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--amber);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .alerta-nao-vizinhos {
+      display: none;
+      margin-top: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      color: #fca5a5;
+      font-size: 0.86rem;
+      font-weight: 600;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .alerta-nao-vizinhos.visivel {
+      display: flex;
+    }
+
+    .grid-leituras {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 720px) {
+      .grid-leituras {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    table.planilha {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.87rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    table.planilha th,
+    table.planilha td {
+      padding: 5.5px 8px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    table.planilha th:nth-child(2),
+    table.planilha td:nth-child(2),
+    table.planilha th:nth-child(3),
+    table.planilha td:nth-child(3),
+    table.planilha th:nth-child(4),
+    table.planilha td:nth-child(4) {
+      text-align: center;
+    }
+
+    table.planilha th {
+      font-size: 0.71rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    table.planilha tbody tr.ativa {
+      background: var(--green-soft);
+    }
+
+    table.planilha tfoot td {
+      border-bottom: none;
+      padding-top: 8px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .badge-bit {
+      display: inline-block;
+      width: 24px;
+      height: 20px;
+      line-height: 20px;
+      text-align: center;
+      border-radius: 4px;
+      font-weight: 700;
+      font-size: 0.8rem;
+    }
+
+    .bit-0 {
+      color: var(--text-dim);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .bit-1 {
+      color: #052e16;
+      background: var(--green);
+    }
+
+    .status-borda-strip {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+
+    .pill-borda {
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 0.74rem;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-dim);
+    }
+
+    .pill-borda.ativa {
+      background: rgba(56, 189, 248, 0.22);
+      color: #bae6fd;
+      border: 1px solid var(--blue);
+    }
+
+    .grafico-wrap {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+    }
+
+    .barras-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      align-items: end;
+      height: 155px;
+      padding: 10px 8px 6px 8px;
+      background: var(--surface-2);
+      border-radius: 8px;
+    }
+
+    .barra-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      gap: 4px;
+      cursor: pointer;
+    }
+
+    .barra-num {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+
+    .barra-item.ativa .barra-num {
+      color: var(--green);
+    }
+
+    .barra-trilho {
+      width: 100%;
+      max-width: 30px;
+      height: 90px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 4px;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+
+    .barra-fill {
+      width: 100%;
+      height: 6%;
+      background: rgba(255, 255, 255, 0.15);
+      transition: height 0.15s ease, background 0.15s ease;
+    }
+
+    .barra-item.ativa .barra-fill {
+      height: 100%;
+      background: var(--green);
+    }
+
+    .barra-id {
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .barra-ang {
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      margin-top: -3px;
+    }
+
+    /* Painel de Decisão + Motores */
+    .acao-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 14px;
+      background: var(--surface-2);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border-left: 3px solid var(--green);
+    }
+
+    @media (max-width: 680px) {
+      .acao-header {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .acao-principal {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-top: 2px;
+    }
+
+    .acao-detalhe {
+      font-size: 0.76rem;
+      color: var(--text-dim);
+    }
+
+    .motores-inline {
+      display: flex;
+      gap: 10px;
+    }
+
+    .motor-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 11px;
+      min-width: 140px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .motor-topo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .motor-card .m-label {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .motor-card .m-sentido {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    .sentido-frente {
+      color: #6ee7b7;
+      background: rgba(16, 185, 129, 0.15);
+    }
+
+    .sentido-re {
+      color: #fcd34d;
+      background: rgba(245, 158, 11, 0.15);
+    }
+
+    .motor-meio {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .motor-card .m-seta {
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .motor-card .m-val {
+      font-family: "JetBrains Mono", "Consolas", monospace;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .val-pos { color: var(--green); }
+    .val-neg { color: var(--amber); }
+
+    .motor-barra-trilho {
+      position: relative;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.07);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .motor-barra-centro {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: rgba(255, 255, 255, 0.25);
+      z-index: 2;
+    }
+
+    .motor-barra-fill {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      transition: left 0.1s ease, width 0.1s ease;
+    }
+
+    .regras-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .regras-legenda {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.74rem;
+      color: var(--text-dim);
+    }
+
+    .legenda-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .regras-grid {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .regra-item {
+      display: grid;
+      grid-template-columns: auto auto 1fr auto auto;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 9px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      transition: background 0.12s, border-color 0.12s;
+    }
+
+    @media (max-width: 820px) {
+      .regra-item {
+        grid-template-columns: auto 1fr auto;
+      }
+      .regra-acao-wrap {
+        grid-column: 1 / -1;
+      }
+    }
+
+    .regra-item .r-num {
+      font-size: 0.7rem;
+      font-weight: 700;
+      min-width: 24px;
+      height: 22px;
+      padding: 0 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.06);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: var(--text-dim);
+    }
+
+    .chips-condicao {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .chip-sensor {
+      font-family: "JetBrains Mono", "Consolas", monospace;
+      font-size: 0.71rem;
+      font-weight: 700;
+      padding: 3px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.08s, background 0.1s, border-color 0.1s;
+    }
+
+    .chip-sensor:hover {
+      transform: translateY(-1px);
+      border-color: var(--border-strong);
+    }
+
+    .chip-sensor.req-1 {
+      background: var(--green);
+      color: #052e16;
+      border-color: #34d399;
+    }
+
+    .chip-sensor.req-0 {
+      background: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.55);
+    }
+
+    .chip-sensor.req-any {
+      background: rgba(255, 255, 255, 0.04);
+      color: #64748b;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .regra-acao-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .select-preset-acao {
+      font-size: 0.75rem;
+      padding: 4px 6px;
+      border-radius: 5px;
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      max-width: 175px;
+      flex-shrink: 0;
+    }
+
+    .input-texto-acao {
+      font-family: inherit;
+      font-size: 0.78rem;
+      padding: 4px 8px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      width: 100%;
+      min-width: 110px;
+    }
+
+    .input-texto-acao:focus,
+    .input-pwm-regra:focus,
+    .select-preset-acao:focus {
+      outline: none;
+      border-color: var(--blue);
+    }
+
+    .regra-pwm-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: "JetBrains Mono", "Consolas", monospace;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .input-pwm-regra {
+      font-family: "JetBrains Mono", "Consolas", monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      width: 54px;
+      padding: 3px 5px;
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      text-align: center;
+    }
+
+    .regra-botoes {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .btn-regra-mini {
+      padding: 2px 6px;
+      font-size: 0.72rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+
+    .btn-regra-mini:hover {
+      color: var(--text);
+      background: var(--surface-2);
+    }
+
+    .btn-regra-mini.btn-excluir:hover {
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.5);
+      background: rgba(239, 68, 68, 0.14);
+    }
+
+    .regra-item.ativa {
+      background: var(--green-soft);
+      border-color: rgba(16, 185, 129, 0.55);
+      color: #ffffff;
+      box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2);
+    }
+
+    .regra-item.ativa .r-num {
+      background: var(--green);
+      color: #052e16;
+    }
+
+    .regra-item.ativa .input-texto-acao {
+      border-color: rgba(16, 185, 129, 0.45);
+      font-weight: 600;
+    }
+
+    /* Sliders de Posição, Ângulo, Alcance e Cone dos Sensores */
+    .sliders-topo {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .calibracao-linha {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .calibracao-controles-globais {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      width: 100%;
+      padding-top: 6px;
+      border-top: 1px solid var(--border);
+    }
+
+    .global-ctrl-box {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      padding: 6px 9px;
+      border-radius: 6px;
+    }
+
+    .global-ctrl-topo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.73rem;
+      color: var(--text-dim);
+      font-weight: 600;
+    }
+
+    .check-simetria {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.77rem;
+      font-weight: 600;
+      color: var(--blue);
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .check-simetria input {
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+
+    .sliders-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    @media (max-width: 960px) {
+      .sliders-grid {
+        grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      }
+    }
+
+    .slider-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 9px 10px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: opacity 0.15s, border-color 0.15s;
+    }
+
+    .slider-card.selecionado {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.3);
+    }
+
+    .slider-card.desativado {
+      opacity: 0.48;
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .slider-card-titulo {
+      font-size: 0.79rem;
+      font-weight: 700;
+      color: #ffffff;
+      padding-bottom: 5px;
+      margin-bottom: 2px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-toggle-sensor {
+      font-size: 0.66rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      background: rgba(16, 185, 129, 0.16);
+      color: #6ee7b7;
+      cursor: pointer;
+    }
+
+    .btn-toggle-sensor.off {
+      border-color: rgba(239, 68, 68, 0.45);
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+    }
+
+    .mini-btns-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      margin-top: 2px;
+    }
+
+    .btn-mini-snap {
+      font-size: 0.65rem;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      flex: 1;
+      text-align: center;
+    }
+
+    .btn-mini-snap:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    .rodape-feixe-card {
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px dashed var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.69rem;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .rodape-feixe-card .feixe-ativo {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .slider-linha {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .slider-val {
+      color: var(--blue);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--blue);
+      cursor: pointer;
+      height: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="titulo-grupo">
+      <h1>Simulador Mini Sumô</h1>
+      <span class="tag-modelo">5× FX-S50 + 2× Sensores de Borda + Física OBB</span>
+    </div>
+
+    <div class="seletor-modo">
+      <button type="button" id="btnModoPrioridade" class="modo-ativo">Modo 1: Prioridade (5 Setores)</button>
+      <button type="button" id="btnModoEngenharia">Modo Engenharia: 9 Zonas (Interseção)</button>
+    </div>
+
+    <div class="grupo-btn">
+      <button id="btnPlaySimulacao" class="btn-play" type="button">▶ Rodar Física (Play)</button>
+      <button id="btnToggleCones" class="ativo" type="button">Cones Visíveis</button>
+      <button id="btnResetar" class="btn-sutil" type="button">Resetar Tudo</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- ==================== ESQUERDA: ARENA ==================== -->
+    <section class="coluna-esquerda">
+      <div class="painel">
+        <div class="painel-cabecalho">
+          <span class="painel-titulo">Dohyo Ø 77 cm · Vista Superior</span>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span class="badge-cronometro" id="badgeCronometro">⏱ 0,00 s</span>
+            <span class="painel-sub" id="infoPosicaoOponente">Distância: -- cm</span>
+          </div>
+        </div>
+
+        <div class="canvas-wrap">
+          <canvas id="canvasArena" width="620" height="620"></canvas>
+          <div id="toastArena" class="toast-arena">🏆 IPPON! Oponente fora do Dohyo!</div>
+        </div>
+
+        <div class="dica-interacao">
+          💡 Arraste o <strong>Oponente</strong>, o <strong>Robô</strong> ou qualquer sensor <strong>S1–S5</strong> direto no chassi!
+        </div>
+
+        <!-- Largadas Oficiais de Torneio (Melhoria G) -->
+        <div class="barra-controles">
+          <div class="grupo-btn">
+            <span class="rotulo-mini">Largadas de Torneio:</span>
+            <button type="button" class="btn-torneio" data-cenario="frente">Frente a Frente</button>
+            <button type="button" class="btn-torneio" data-cenario="lado-a-lado">Lado a Lado (90°)</button>
+            <button type="button" class="btn-torneio" data-cenario="costas">Costas c/ Costas (180°)</button>
+          </div>
+        </div>
+
+        <!-- Cenários Didáticos de Sensores -->
+        <div class="barra-controles" style="margin-top:6px; padding-top:6px;">
+          <div class="grupo-btn">
+            <span class="rotulo-mini">Testar Cones:</span>
+            <button type="button" class="ativo" data-cenario="s1-s2-s3">⚡ S1+S2+S3 (Força Máx)</button>
+            <button type="button" data-cenario="diagonal-esquerda">Diag. Esq</button>
+            <button type="button" data-cenario="intersecao">Interseção (S2+S3)</button>
+            <button type="button" data-cenario="lateral-direita">Lat. Dir</button>
+            <button type="button" data-cenario="fora">Fora</button>
+            <button type="button" class="btn-demo-alerta" data-cenario="nao-vizinhos">Ruído S1+S5</button>
+          </div>
+        </div>
+
+        <!-- Giro do Robô + Comportamento do Oponente na Física -->
+        <div class="barra-controles" style="margin-top:6px; padding-top:6px;">
+          <div class="grupo-btn">
+            <span class="rotulo-mini">Robô:</span>
+            <button type="button" id="btnGirarEsq">-15°</button>
+            <button type="button" id="btnGirarZero">0°</button>
+            <button type="button" id="btnGirarDir">+15°</button>
+            <span class="painel-sub" id="labelGiroRobo" style="margin-left:3px;">0°</span>
+          </div>
+
+          <div class="grupo-btn">
+            <span class="rotulo-mini">Oponente:</span>
+            <select id="selectModoOponente" title="Comportamento físico do oponente quando o Play está ativo">
+              <option value="pesado">500g c/ Giro Real (Empurrável)</option>
+              <option value="movel">Oponente em Movimento</option>
+              <option value="fixo">Estático (Travado)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== DIREITA: PAINÉIS ==================== -->
+    <section class="coluna-direita">
+
+      <!-- 1. ÁREA DETECTADA PELOS SENSORES DIGITAIS VS POSIÇÃO REAL -->
+      <div class="painel">
+        <div class="resumo-topo">
+          <div class="explicacao-digital" id="textoExplicacaoModo">
+            <strong>Modo 1 — Prioridade Simples (5 Setores):</strong><br />
+            Olha um sensor por vez (<code>S3 → S2 → S4 → S1 → S5</code>). Os pontos verdes brilhantes no oponente mostram onde o feixe infravermelho reflete, e as fatias ciano mostram onde há interseção dupla de cones!
+          </div>
+
+          <div class="bloco-destaque">
+            <div class="rotulo">Zona Detectada pelo Robô</div>
+            <div class="valor-setor" id="valorAreaDetectada">--</div>
+          </div>
+
+          <div class="bloco-destaque">
+            <div class="rotulo">Direção Real (Seta Laranja)</div>
+            <div class="valor-angulo" id="valorAnguloOponente">--</div>
+          </div>
+        </div>
+
+        <div id="avisoNaoVizinhos" class="alerta-nao-vizinhos">
+          <span>⚠️ Sensores NÃO vizinhos ativos ao mesmo tempo — <strong>descartando interseção e usando prioridade!</strong></span>
+          <button type="button" id="btnLimparForcado" style="display:none;">Limpar</button>
+        </div>
+      </div>
+
+      <!-- 2. PLANILHA + GRÁFICO DE BARRAS -->
+      <div class="grid-leituras">
+        <div class="painel">
+          <div class="painel-cabecalho">
+            <span class="painel-titulo">Painel de Leituras</span>
+            <span class="painel-sub">FX-S50 + Sensores de Borda</span>
+          </div>
+          <table class="planilha">
+            <thead>
+              <tr>
+                <th>Sensor</th>
+                <th>Posição / Ângulo</th>
+                <th>Alcance</th>
+                <th>Leitura</th>
+              </tr>
+            </thead>
+            <tbody id="corpoTabelaLeituras"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3">Total de Sensores IR Ativos</td>
+                <td id="totalSomaLeituras">0 / 5</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <!-- Status dos 2 Sensores de Linha Branca sob a Lâmina (Melhoria B) -->
+          <div class="status-borda-strip">
+            <span>Sensores de Linha Branca (sob a lâmina):</span>
+            <div style="display:flex; gap:6px;">
+              <span class="pill-borda" id="pillBordaEsq">SL_Esq: 0 (Preto)</span>
+              <span class="pill-borda" id="pillBordaDir">SL_Dir: 0 (Preto)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="painel">
+          <div class="painel-cabecalho">
+            <span class="painel-titulo">Saída Digital (0/1)</span>
+            <span class="painel-sub">Clique para testar</span>
+          </div>
+          <div class="grafico-wrap">
+            <div class="barras-grid" id="containerBarras"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. DECISÃO DO ROBÔ E MOTORES -->
+      <div class="painel">
+        <div class="painel-cabecalho">
+          <span class="painel-titulo" id="tituloPainelDecisao">Decisão do Robô (Editor de Condições e Ações)</span>
+          <div class="grupo-btn">
+            <span class="painel-sub" id="infoUltimoLado" style="margin-right:6px;">Último lado visto: Esquerda</span>
+            <button type="button" id="btnAdicionarRegra" class="ativo">+ Nova Regra</button>
+            <button type="button" id="btnResetarRegras" class="btn-sutil">Restaurar Padrão</button>
+          </div>
+        </div>
+
+        <div class="acao-header">
+          <div>
+            <div class="acao-detalhe" id="regraAtivaBadge">Regra ativa</div>
+            <div class="acao-principal" id="textoAcaoAtual">--</div>
+          </div>
+
+          <div class="motores-inline">
+            <div class="motor-card">
+              <div class="motor-topo">
+                <span class="m-label">Roda Esq</span>
+                <span class="m-sentido sentido-frente" id="sentidoMotorEsq">▲ Frente</span>
+              </div>
+              <div class="motor-meio">
+                <span class="m-seta val-pos" id="setaMotorEsq">▲</span>
+                <span class="m-val val-pos" id="pwmMotorEsq">255</span>
+              </div>
+              <div class="motor-barra-trilho">
+                <div class="motor-barra-centro"></div>
+                <div class="motor-barra-fill" id="barraMotorEsq"></div>
+              </div>
+            </div>
+
+            <div class="motor-card">
+              <div class="motor-topo">
+                <span class="m-label">Roda Dir</span>
+                <span class="m-sentido sentido-frente" id="sentidoMotorDir">▲ Frente</span>
+              </div>
+              <div class="motor-meio">
+                <span class="m-seta val-pos" id="setaMotorDir">▲</span>
+                <span class="m-val val-pos" id="pwmMotorDir">255</span>
+              </div>
+              <div class="motor-barra-trilho">
+                <div class="motor-barra-centro"></div>
+                <div class="motor-barra-fill" id="barraMotorDir"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="regras-toolbar">
+          <div class="regras-legenda">
+            <span><strong>Clique em S1–S5 para mudar a condição:</strong></span>
+            <span class="legenda-item"><span class="chip-sensor req-1" style="cursor:default;">S:1</span> Precisa estar ligado</span>
+            <span class="legenda-item"><span class="chip-sensor req-any" style="cursor:default;">S:*</span> Ignorar (Qualquer)</span>
+            <span class="legenda-item"><span class="chip-sensor req-0" style="cursor:default;">S:0</span> Precisa estar desligado</span>
+          </div>
+          <span style="font-size:0.72rem; color:var(--text-dim);">Avaliado de cima p/ baixo (1ª regra que bater vence)</span>
+        </div>
+
+        <ul class="regras-grid" id="listaRegrasPrioridade"></ul>
+      </div>
+
+      <!-- 4. POSICIONAMENTO E CALIBRAÇÃO DOS SENSORES -->
+      <div class="painel">
+        <div class="painel-cabecalho">
+          <span class="painel-titulo">Geometria e Calibração dos 5 Sensores no Chassi (10×10 cm)</span>
+          <span style="font-size:0.75rem; color:var(--text-dim);" id="infoPontosCegos">
+            Cobertura frontal: analisando...
+          </span>
+        </div>
+
+        <!-- Barra de Presets de Montagem no Chassi -->
+        <div class="grupo-btn" style="margin-bottom:8px;">
+          <span class="rotulo-mini">Montagens de Competição:</span>
+          <button type="button" data-preset="padrao" title="Clássico: 0°, 45°, 90°, 135°, 180° no perímetro">Padrão (Perímetro)</button>
+          <button type="button" data-preset="cruzado" title="Cruza S2 e S4 na frente da lâmina para travar o oponente no centro">Feixes Cruzados (Cross-Beam)</button>
+          <button type="button" data-preset="frontal" title="Todos os 5 sensores alinhados na lâmina frontal">Bateria Frontal (5 na Lâmina)</button>
+          <button type="button" data-preset="paralelo" title="S2, S3 e S4 paralelos a 90° formando uma parede laser de 10 cm + S1/S5 laterais">Cortina Paralela (3× 90°)</button>
+          <button type="button" data-preset="convergente" title="Feixes inclinados convergindo num ponto focal a 18 cm da lâmina">Pinça Convergente</button>
+          <button type="button" data-preset="sniper" title="Feixes estreitos (20°) e longo alcance (50 cm) para busca distante">Sniper (Longo Alcance)</button>
+          <button type="button" data-preset="radar360" title="S1 e S5 voltados para as diagonais traseiras para detectar oponente nas costas">Radar 360° (Defesa Costas)</button>
+          <button type="button" data-preset="cacador-esq" title="Concentra S1, S2 e S3 na frente-esquerda para disparar Força Máxima S1+S2+S3 facilmente">Caçador Esq (Foco S1+S2+S3)</button>
+        </div>
+
+        <!-- Barra de Ferramentas Globais + Simetria + Sensores de Linha Branca -->
+        <div class="sliders-topo">
+          <div class="calibracao-linha">
+            <div class="grupo-btn">
+              <label class="check-simetria" title="Quando ativo, mexer em S1 espelha automaticamente em S5, e mexer em S2 espelha em S4!">
+                <input type="checkbox" id="checkSimetria" checked />
+                <span>🔒 Espelhar Simetria (S1↔S5 e S2↔S4)</span>
+              </label>
+              <button type="button" id="btnSnapPerimetro" title="Encaixa todos os sensores automaticamente na borda externa do chassi 10x10 cm">🧲 Encaixar na Borda 10×10</button>
+              <button type="button" id="btnAlinharLamina" title="Alinha todos os 5 sensores na lâmina frontal (Y = -4,7 cm)">📐 Puxar Todos p/ Lâmina</button>
+              <button type="button" id="btnAtivarTodosSensores" title="Garante que todos os 5 sensores estejam ligados (ON)">✔ Ligar Todos (5/5)</button>
+            </div>
+          </div>
+
+          <div class="calibracao-controles-globais">
+            <div class="global-ctrl-box">
+              <div class="global-ctrl-topo">
+                <span>Abertura Global (Cones)</span>
+                <span class="slider-val" id="labelFovGlobal">40°</span>
+              </div>
+              <input type="range" id="sliderFovGlobal" min="10" max="90" step="1" value="40" />
+            </div>
+
+            <div class="global-ctrl-box">
+              <div class="global-ctrl-topo">
+                <span>Alcance Global (Todos)</span>
+                <span class="slider-val" id="labelAlcanceGlobal">25 cm</span>
+              </div>
+              <input type="range" id="sliderAlcanceGlobal" min="5" max="60" step="1" value="25" />
+            </div>
+
+            <div class="global-ctrl-box">
+              <div class="global-ctrl-topo">
+                <span>Leque Angular (Espalhamento)</span>
+                <span class="slider-val" id="labelPassoAngularGlobal">45°</span>
+              </div>
+              <input type="range" id="sliderPassoAngularGlobal" min="0" max="90" step="1" value="45" title="0° = todos apontando reto (90°) | 45° = padrão (0° a 180°) | 90° = até para trás" />
+            </div>
+
+            <div class="global-ctrl-box">
+              <div class="global-ctrl-topo">
+                <span>Sensores de Borda (SL_Esq / SL_Dir)</span>
+                <span class="slider-val" id="labelPosSensoresLinha">X: ±4,2 · Y: -4,6 cm</span>
+              </div>
+              <div style="display:flex; gap:5px; align-items:center;">
+                <input type="range" id="sliderLinhaX" min="1.0" max="4.8" step="0.1" value="4.2" title="Afastamento lateral dos sensores de linha branca (X)" />
+                <input type="range" id="sliderLinhaY" min="-4.9" max="4.5" step="0.1" value="-4.6" title="Posição longitudinal dos sensores de linha branca (Y)" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sliders-grid" id="containerSlidersSensores"></div>
+      </div>
+
+    </section>
+  </main>
+
+  <script>
+    /* =========================================================================
+     * 1. CONFIGURAÇÃO DOS SENSORES E ARENA
+     * ========================================================================= */
+    const CONFIG = {
+      dohyoDiametroCm: 77,       // Diâmetro oficial do Dohyo de Mini Sumô (77 cm)
+      dohyoBordaBrancaCm: 2.5,   // Borda branca externa - Tawara (2,5 cm)
+      shikiriComprimentoCm: 10,  // Comprimento das 2 linhas centrais Shikiri-sen (10 cm)
+      shikiriEspessuraCm: 1,     // Espessura das linhas Shikiri-sen (1 cm)
+      shikiriDistanciaCm: 10,    // Distância entre as duas linhas Shikiri-sen (10 cm)
+      roboTamanhoCm: 10,         // Robô 10 x 10 cm (500 g)
+      oponenteTamanhoCm: 10,     // Oponente 10 x 10 cm (500 g)
+      fovPadraoGraus: 40,
+
+      // Sensores de linha branca (QRE1113/TCRT5000) sob os cantos frontais da lâmina
+      sensoresLinhaLocalCm: {
+        esq: { x: -4.2, y: -4.6 },
+        dir: { x:  4.2, y: -4.6 }
+      },
+
+      sensoresPadrao: [
+        { id: 'S1', nome: 'Lat. Esq',  angulo: 0,   fov: 40, alcanceCm: 10, offsetLocalCm: { x: -4.6, y: -0.4 } },
+        { id: 'S2', nome: 'Diag. Esq', angulo: 45,  fov: 40, alcanceCm: 20, offsetLocalCm: { x: -4.4, y: -4.4 } },
+        { id: 'S3', nome: 'Frente',    angulo: 90,  fov: 40, alcanceCm: 30, offsetLocalCm: { x:  0.0, y: -4.7 } },
+        { id: 'S4', nome: 'Diag. Dir', angulo: 135, fov: 40, alcanceCm: 20, offsetLocalCm: { x:  4.4, y: -4.4 } },
+        { id: 'S5', nome: 'Lat. Dir',  angulo: 180, fov: 40, alcanceCm: 10, offsetLocalCm: { x:  4.6, y: -0.4 } }
+      ],
+
+      // Presets rápidos de ação para o seletor de cada regra
+      presetsAcao: [
+        { id: 'forca_max',   rotulo: '⚡ Força máxima (255, 255)',       texto: 'Força máxima (Impacto Total)',          motorEsq: 255,  motorDir: 255 },
+        { id: 'atacar_reto', rotulo: '⬆️ Atacar reto (255, 255)',        texto: 'Atacar reto, velocidade máxima',        motorEsq: 255,  motorDir: 255 },
+        { id: 'corr_esq',    rotulo: '↖️ Ataque corrigindo Esq (200, 255)', texto: 'Ataque corrigindo leve à esquerda',  motorEsq: 200,  motorDir: 255 },
+        { id: 'corr_dir',    rotulo: '↗️ Ataque corrigindo Dir (255, 200)', texto: 'Ataque corrigindo leve à direita',   motorEsq: 255,  motorDir: 200 },
+        { id: 'curva_esq',   rotulo: '↪️ Curva p/ Esquerda (120, 255)',  texto: 'Curva à esquerda até o centro ver',     motorEsq: 120,  motorDir: 255 },
+        { id: 'curva_dir',   rotulo: '↩️ Curva p/ Direita (255, 120)',   texto: 'Curva à direita até o centro ver',      motorEsq: 255,  motorDir: 120 },
+        { id: 'fechada_esq', rotulo: '⤴️ Curva fechada Esq (0, 255)',    texto: 'Curva fechada rápida p/ esquerda',      motorEsq: 0,    motorDir: 255 },
+        { id: 'fechada_dir', rotulo: '⤵️ Curva fechada Dir (255, 0)',    texto: 'Curva fechada rápida p/ direita',       motorEsq: 255,  motorDir: 0 },
+        { id: 'giro_esq',    rotulo: '🔄 Giro no eixo Esq (-255, 255)',  texto: 'Girar no lugar p/ esquerda, rápido',    motorEsq: -255, motorDir: 255 },
+        { id: 'giro_dir',    rotulo: '🔃 Giro no eixo Dir (255, -255)',  texto: 'Girar no lugar p/ direita, rápido',     motorEsq: 255,  motorDir: -255 },
+        { id: 're_total',    rotulo: '⏪ Ré total (-255, -255)',         texto: 'Ré em potência máxima',                 motorEsq: -255, motorDir: -255 },
+        { id: 'parar',       rotulo: '⏹️ Parar motores (0, 0)',          texto: 'Parar motores (Freio)',                 motorEsq: 0,    motorDir: 0 }
+      ],
+
+      // Regras padrão do Modo 1 (Prioridade):
+      // cond: [S1, S2, S3, S4, S5] onde 1 = ligado, 0 = desligado, null = * (qualquer)
+      regrasPadraoPrioridade: [
+        { cond: [1, 1, 1, null, null],       texto: 'Força máxima (S1+S2+S3 ligados)',       motorEsq: 255,  motorDir: 255 },
+        { cond: [null, null, 1, null, null], texto: 'Atacar reto, velocidade máxima',        motorEsq: 255,  motorDir: 255 },
+        { cond: [null, 1, null, null, null], texto: 'Curva à esquerda até o centro ver',     motorEsq: 120,  motorDir: 255 },
+        { cond: [null, null, null, 1, null], texto: 'Curva à direita até o centro ver',      motorEsq: 255,  motorDir: 120 },
+        { cond: [1, null, null, null, null], texto: 'Girar no lugar p/ esquerda, rápido',    motorEsq: -255, motorDir: 255 },
+        { cond: [null, null, null, null, 1], texto: 'Girar no lugar p/ direita, rápido',     motorEsq: 255,  motorDir: -255 }
+      ],
+
+      // Regras padrão do Modo Engenharia (Interseção de Cones):
+      regrasPadraoEngenharia: [
+        { cond: [1, 1, 1, null, null],       texto: 'Força máxima (S1+S2+S3 ligados)',       motorEsq: 255,  motorDir: 255 },
+        { cond: [null, 1, 1, 1, null],       texto: 'Força máxima (S2+S3+S4 Frontal)',       motorEsq: 255,  motorDir: 255 },
+        { cond: [null, null, 1, 1, 1],       texto: 'Força máxima (S3+S4+S5 ligados)',       motorEsq: 255,  motorDir: 255 },
+        { cond: [null, 1, 1, null, null],    texto: 'Ataque corrigindo leve à esquerda',     motorEsq: 200,  motorDir: 255 },
+        { cond: [null, null, 1, 1, null],    texto: 'Ataque corrigindo leve à direita',      motorEsq: 255,  motorDir: 200 },
+        { cond: [null, null, 1, null, null], texto: 'Atacar reto, velocidade máxima',        motorEsq: 255,  motorDir: 255 },
+        { cond: [1, 1, null, null, null],    texto: 'Curva fechada rápida p/ esquerda',      motorEsq: 0,    motorDir: 255 },
+        { cond: [null, null, null, 1, 1],    texto: 'Curva fechada rápida p/ direita',       motorEsq: 255,  motorDir: 0 },
+        { cond: [null, 1, null, null, null], texto: 'Curva média p/ esquerda',               motorEsq: 120,  motorDir: 255 },
+        { cond: [null, null, null, 1, null], texto: 'Curva média p/ direita',                motorEsq: 255,  motorDir: 120 },
+        { cond: [1, null, null, null, null], texto: 'Girar no próprio eixo p/ esquerda',     motorEsq: -255, motorDir: 255 },
+        { cond: [null, null, null, null, 1], texto: 'Girar no próprio eixo p/ direita',      motorEsq: 255,  motorDir: -255 }
+      ]
+    };
+
+    /* =========================================================================
+     * 2. ESTADO DA SIMULAÇÃO E FÍSICA 2D (COM GIRO DO OPONENTE E RASTROS)
+     * ========================================================================= */
+    const estado = {
+      sensores: JSON.parse(JSON.stringify(CONFIG.sensoresPadrao)),
+      sensoresLinhaLocalCm: JSON.parse(JSON.stringify(CONFIG.sensoresLinhaLocalCm)),
+      simetriaAtiva: true,
+      regrasPrioridade: JSON.parse(JSON.stringify(CONFIG.regrasPadraoPrioridade)),
+      regrasEngenharia: JSON.parse(JSON.stringify(CONFIG.regrasPadraoEngenharia)),
+      velBuscaPadrao: 150,
+
+      // Nosso robô
+      roboCm: { x: 0, y: 10.5 },
+      roboVel: { vx: 0, vy: 0, omegaGraus: 0 },
+      rotacaoRoboGraus: 0,
+      bordaEsqAtiva: false,
+      bordaDirAtiva: false,
+      tempoManobraBorda: 0,
+      ladoManobraBorda: 'direita',
+
+      // Oponente (agora também possui rotação e velocidade angular omegaGraus!)
+      oponenteCm: { x: 0, y: -10.5 },
+      oponenteVel: { vx: 0, vy: 0, omegaGraus: 0 },
+      rotacaoOponenteGraus: 0,
+      modoOponente: 'pesado',
+      anguloOrbitaOp: 0,
+
+      // Cronômetro de luta e rastros de trajetória (Melhoria F)
+      tempoLutaSeg: 0,
+      ipponAlcancado: false,
+      rastroRoboCm: [],
+      rastroOponenteCm: [],
+
+      mostrarCones: true,
+      ultimoLadoVisto: 'esquerda',
+      modoEngenharia: false,
+      simulandoMovimento: false,
+      ultimoTimestamp: 0,
+
+      alvoArraste: null,
+      sensorSelecionadoIdx: null,
+      leiturasForcadas: null
+    };
+
+    const canvas = document.getElementById('canvasArena');
+    const ctx = canvas.getContext('2d');
+
+    function obterEscalaPxPorCm() {
+      return canvas.width / 90;
+    }
+
+    function grausParaRad(graus) {
+      return (graus * Math.PI) / 180;
+    }
+
+    function localRoboParaArenaCm(lx, ly) {
+      const rotRad = grausParaRad(estado.rotacaoRoboGraus);
+      const cosR = Math.cos(rotRad);
+      const sinR = Math.sin(rotRad);
+      return {
+        x: estado.roboCm.x + (lx * cosR - ly * sinR),
+        y: estado.roboCm.y + (lx * sinR + ly * cosR)
+      };
+    }
+
+    function arenaParaLocalRoboCm(ax, ay) {
+      const dx = ax - estado.roboCm.x;
+      const dy = ay - estado.roboCm.y;
+      const rotRad = grausParaRad(-estado.rotacaoRoboGraus);
+      const cosR = Math.cos(rotRad);
+      const sinR = Math.sin(rotRad);
+      return {
+        x: dx * cosR - dy * sinR,
+        y: dx * sinR + dy * cosR
+      };
+    }
+
+    function localOponenteParaArenaCm(lx, ly) {
+      const rotRad = grausParaRad(estado.rotacaoOponenteGraus);
+      const cosR = Math.cos(rotRad);
+      const sinR = Math.sin(rotRad);
+      return {
+        x: estado.oponenteCm.x + (lx * cosR - ly * sinR),
+        y: estado.oponenteCm.y + (lx * sinR + ly * cosR)
+      };
+    }
+
+    function obterOrigemSensorCm(sensor) {
+      return localRoboParaArenaCm(sensor.offsetLocalCm.x, sensor.offsetLocalCm.y);
+    }
+
+    /* =========================================================================
+     * 3. RAYCASTING E DETECÇÃO DO CORPO 10x10 CM DO OPONENTE (MELHORIA A + C)
+     * Verifica se o quadrado 10x10 cm (rotacionado) do oponente entra no cone
+     * e retorna o ponto mais próximo onde o feixe infravermelho bate na parede!
+     * ========================================================================= */
+    function detectarOponenteNoCone(origemSensorCm, dx, dy, alcanceCm, fovGraus) {
+      const meioLado = CONFIG.oponenteTamanhoCm / 2;
+      const cosLimite = Math.cos(grausParaRad(fovGraus / 2) + 1e-5);
+      const alcanceMax = alcanceCm + 1e-5;
+
+      let melhorDist = Infinity;
+      let pontoReflexoCm = null;
+
+      // Amostra os pontos do contorno e interior do chassi 10x10 cm rotacionado do oponente
+      const passos = 8;
+      for (let ix = 0; ix <= passos; ix++) {
+        const lx = -meioLado + (ix / passos) * CONFIG.oponenteTamanhoCm;
+        for (let iy = 0; iy <= passos; iy++) {
+          const ly = -meioLado + (iy / passos) * CONFIG.oponenteTamanhoCm;
+          const ptArena = localOponenteParaArenaCm(lx, ly);
+
+          const vx = ptArena.x - origemSensorCm.x;
+          const vy = ptArena.y - origemSensorCm.y;
+          const dist = Math.hypot(vx, vy);
+
+          if (dist <= alcanceMax) {
+            if (dist < 1e-5) {
+              return { ativo: true, pontoReflexoCm: ptArena, distanciaFeixeCm: 0 };
+            }
+            const prodEscalar = (vx / dist) * dx + (vy / dist) * dy;
+            if (prodEscalar >= cosLimite && dist < melhorDist) {
+              melhorDist = dist;
+              pontoReflexoCm = ptArena;
+            }
+          }
+        }
+      }
+
+      return {
+        ativo: pontoReflexoCm !== null,
+        pontoReflexoCm,
+        distanciaFeixeCm: melhorDist
+      };
+    }
+
+    /* Lê os 5 sensores infravermelhos FX-S50 e os 2 sensores de borda branca */
+    function lerSensores() {
+      // Atualiza leitura dos 2 sensores de linha branca sob a lâmina frontal (Melhoria B)
+      const raioPretoInterno = (CONFIG.dohyoDiametroCm / 2) - CONFIG.dohyoBordaBrancaCm;
+      const raioTotalDohyo = CONFIG.dohyoDiametroCm / 2;
+
+      const posLinhaEsq = localRoboParaArenaCm(estado.sensoresLinhaLocalCm.esq.x, estado.sensoresLinhaLocalCm.esq.y);
+      const posLinhaDir = localRoboParaArenaCm(estado.sensoresLinhaLocalCm.dir.x, estado.sensoresLinhaLocalCm.dir.y);
+
+      const dEsq = Math.hypot(posLinhaEsq.x, posLinhaEsq.y);
+      const dDir = Math.hypot(posLinhaDir.x, posLinhaDir.y);
+
+      estado.bordaEsqAtiva = dEsq >= raioPretoInterno && dEsq <= raioTotalDohyo + 2;
+      estado.bordaDirAtiva = dDir >= raioPretoInterno && dDir <= raioTotalDohyo + 2;
+
+      return estado.sensores.map((sensor, indice) => {
+        const habilitado = sensor.habilitado !== false;
+        const anguloTelaGraus = sensor.angulo + estado.rotacaoRoboGraus;
+        const rad = grausParaRad(anguloTelaGraus);
+
+        const dx = -Math.cos(rad);
+        const dy = -Math.sin(rad);
+        const origemCm = obterOrigemSensorCm(sensor);
+
+        if (!habilitado) {
+          return {
+            ...sensor,
+            habilitado: false,
+            indice,
+            origemCm,
+            dx,
+            dy,
+            leitura: 0,
+            pontoReflexoCm: null,
+            distanciaFeixeCm: Infinity
+          };
+        }
+
+        const deteccao = detectarOponenteNoCone(origemCm, dx, dy, sensor.alcanceCm, sensor.fov);
+        let leitura = deteccao.ativo ? 1 : 0;
+
+        if (estado.leiturasForcadas && typeof estado.leiturasForcadas[indice] === 'number') {
+          leitura = estado.leiturasForcadas[indice];
+        }
+
+        return {
+          ...sensor,
+          habilitado: true,
+          indice,
+          origemCm,
+          dx,
+          dy,
+          leitura,
+          pontoReflexoCm: deteccao.pontoReflexoCm,
+          distanciaFeixeCm: deteccao.distanciaFeixeCm
+        };
+      });
+    }
+
+    /* =========================================================================
+     * 4. FUNÇÃO: identificarSetorEAnguloOponente(leituras)
+     * ========================================================================= */
+    function identificarSetorEAnguloOponente(leituras) {
+      const ativos = leituras.filter((l) => l.leitura === 1);
+      const somaLeituras = ativos.length;
+      const indicesAtivos = ativos.map((a) => a.indice);
+
+      let sensoresNaoVizinhos = false;
+      for (let i = 1; i < indicesAtivos.length; i++) {
+        if (indicesAtivos[i] - indicesAtivos[i - 1] > 1) {
+          sensoresNaoVizinhos = true;
+          break;
+        }
+      }
+
+      if (leituras[0].leitura === 1 || leituras[1].leitura === 1) {
+        estado.ultimoLadoVisto = 'esquerda';
+      } else if (leituras[3].leitura === 1 || leituras[4].leitura === 1) {
+        estado.ultimoLadoVisto = 'direita';
+      }
+
+      let areaDetectada = 'Nenhum detectado';
+      if (somaLeituras === 1) {
+        areaDetectada = `${ativos[0].nome} (${ativos[0].id})`;
+      } else if (somaLeituras > 1) {
+        const ids = ativos.map((a) => a.id).join(' + ');
+        areaDetectada = sensoresNaoVizinhos
+          ? `Ruído / Separados (${ids})`
+          : `Interseção ${ids}`;
+      }
+
+      const vx = estado.oponenteCm.x - estado.roboCm.x;
+      const vy = estado.oponenteCm.y - estado.roboCm.y;
+      let anguloRelativoRobo = (Math.atan2(-vy, -vx) * 180) / Math.PI - estado.rotacaoRoboGraus;
+      while (anguloRelativoRobo <= -180) anguloRelativoRobo += 360;
+      while (anguloRelativoRobo > 180) anguloRelativoRobo -= 360;
+
+      return {
+        somaLeituras,
+        areaDetectada,
+        sensoresNaoVizinhos,
+        anguloRelativoGraus: anguloRelativoRobo
+      };
+    }
+
+    /* =========================================================================
+     * 5. FUNÇÃO: decidirAcao(leituras, infoSetor)
+     * Avalia de cima para baixo a lista de regras editáveis pelo usuário.
+     * ========================================================================= */
+    function limitarPwm(val) {
+      const n = Number(val);
+      if (Number.isNaN(n)) return 0;
+      return Math.max(-255, Math.min(255, Math.round(n)));
+    }
+
+    function formatarCondicaoRegra(cond) {
+      const ligados = [];
+      const desligados = [];
+      for (let i = 0; i < 5; i++) {
+        if (cond[i] === 1) ligados.push(`S${i + 1}`);
+        else if (cond[i] === 0) desligados.push(`!S${i + 1}`);
+      }
+      const partes = [...ligados, ...desligados];
+      return partes.length > 0 ? partes.join(' + ') : 'Qualquer (*)';
+    }
+
+    function regraSatisfazLeituras(regra, leituras) {
+      let temAlgumaCondicao = false;
+      for (let i = 0; i < 5; i++) {
+        const exigido = regra.cond[i];
+        if (exigido !== null && exigido !== undefined) {
+          temAlgumaCondicao = true;
+          if (leituras[i].leitura !== exigido) {
+            return false;
+          }
+        }
+      }
+      return temAlgumaCondicao;
+    }
+
+    function obterListaRegrasAtiva() {
+      return estado.modoEngenharia ? estado.regrasEngenharia : estado.regrasPrioridade;
+    }
+
+    function decidirAcao(leituras, infoSetor) {
+      // Prioridade Máxima de Sobrevivência: Sensores de Linha Branca (Tawara)
+      if (estado.tempoManobraBorda > 0) {
+        const girarDir = estado.ladoManobraBorda === 'direita';
+        return {
+          regra: 0,
+          sensorFoco: `Sensor de Linha (${girarDir ? 'SL_Esq' : 'SL_Dir'} no Branco)`,
+          texto: `Borda branca detectada! Ré + giro p/ ${girarDir ? 'direita' : 'esquerda'}`,
+          motorEsq: girarDir ? -100 : -245,
+          motorDir: girarDir ? -245 : -100,
+          forcaMaxima: false
+        };
+      }
+
+      const esq = estado.ultimoLadoVisto === 'esquerda';
+      // Se estiver no Modo Engenharia mas houver sensores NÃO vizinhos (ruído), usa regras de prioridade
+      const lista = (estado.modoEngenharia && (!infoSetor || !infoSetor.sensoresNaoVizinhos))
+        ? estado.regrasEngenharia
+        : estado.regrasPrioridade;
+
+      for (let idx = 0; idx < lista.length; idx++) {
+        const r = lista[idx];
+        if (regraSatisfazLeituras(r, leituras)) {
+          const mEsq = limitarPwm(r.motorEsq);
+          const mDir = limitarPwm(r.motorDir);
+          const qtdLigadosCond = r.cond.filter((c) => c === 1).length;
+          const forcaMaxima = (mEsq === 255 && mDir === 255) && (qtdLigadosCond >= 3 || (infoSetor && infoSetor.somaLeituras >= 3));
+          return {
+            regra: idx + 1,
+            sensorFoco: formatarCondicaoRegra(r.cond),
+            texto: r.texto || 'Ação personalizada',
+            motorEsq: mEsq,
+            motorDir: mDir,
+            forcaMaxima
+          };
+        }
+      }
+
+      const vBusca = Math.max(0, Math.min(255, Math.round(Number(estado.velBuscaPadrao) || 150)));
+      return {
+        regra: lista.length + 1,
+        sensorFoco: `Nenhum (Último visto: ${esq ? 'Esquerda' : 'Direita'})`,
+        texto: 'Procurar: girar para o lado onde viu por último',
+        motorEsq: esq ? -vBusca : vBusca,
+        motorDir: esq ? vBusca : -vBusca,
+        forcaMaxima: false
+      };
+    }
+
+    /* =========================================================================
+     * 6. MOTOR DE FÍSICA 2D (TORQUE DE QUINA NO OPONENTE, SENSORES DE BORDA E CRONÔMETRO)
+     * ========================================================================= */
+    function atualizarFisicaMovimento(dtSeg) {
+      if (!estado.ipponAlcancado) {
+        estado.tempoLutaSeg += dtSeg;
+      }
+
+      if (estado.tempoManobraBorda > 0) {
+        estado.tempoManobraBorda = Math.max(0, estado.tempoManobraBorda - dtSeg);
+      }
+
+      const leituras = lerSensores();
+      const infoSetor = identificarSetorEAnguloOponente(leituras);
+
+      // Dispara manobra de borda se SL_Esq ou SL_Dir tocar na faixa branca (e não estiver colado no oponente)
+      const dxOp = estado.oponenteCm.x - estado.roboCm.x;
+      const dyOp = estado.oponenteCm.y - estado.roboCm.y;
+      const dist = Math.hypot(dxOp, dyOp);
+
+      if ((estado.bordaEsqAtiva || estado.bordaDirAtiva) && dist > 11.5 && estado.tempoManobraBorda <= 0) {
+        estado.tempoManobraBorda = 0.34;
+        estado.ladoManobraBorda = estado.bordaEsqAtiva ? 'direita' : 'esquerda';
+      }
+
+      const decisao = decidirAcao(leituras, infoSetor);
+
+      // Bônus de Força Máxima quando múltiplos sensores (ex: S1+S2+S3) disparam 255, 255
+      const velMaxCmSeg = decisao.forcaMaxima ? 32 : 26;
+      const giroMaxGrausSeg = 180;
+      const taxaAceleracao = decisao.forcaMaxima ? 15.0 : 11.5;
+      const atritoOponente = 6.2;
+
+      const radFrente = grausParaRad(90 + estado.rotacaoRoboGraus);
+      const fDx = -Math.cos(radFrente);
+      const fDy = -Math.sin(radFrente);
+
+      const vLinearAlvo = ((decisao.motorEsq + decisao.motorDir) / (2 * 255)) * velMaxCmSeg;
+      const omegaAlvo = ((decisao.motorEsq - decisao.motorDir) / (2 * 255)) * giroMaxGrausSeg;
+
+      const fatorInercia = Math.min(1, taxaAceleracao * dtSeg);
+      estado.roboVel.vx += (fDx * vLinearAlvo - estado.roboVel.vx) * fatorInercia;
+      estado.roboVel.vy += (fDy * vLinearAlvo - estado.roboVel.vy) * fatorInercia;
+      estado.roboVel.omegaGraus += (omegaAlvo - estado.roboVel.omegaGraus) * fatorInercia;
+
+      if (estado.alvoArraste !== 'robo') {
+        estado.roboCm.x += estado.roboVel.vx * dtSeg;
+        estado.roboCm.y += estado.roboVel.vy * dtSeg;
+        estado.rotacaoRoboGraus += estado.roboVel.omegaGraus * dtSeg;
+        while (estado.rotacaoRoboGraus <= -180) estado.rotacaoRoboGraus += 360;
+        while (estado.rotacaoRoboGraus > 180) estado.rotacaoRoboGraus -= 360;
+      }
+
+      // Movimento autônomo opcional do oponente
+      if (estado.modoOponente === 'movel' && estado.alvoArraste !== 'oponente' && !estado.ipponAlcancado) {
+        estado.anguloOrbitaOp += 1.15 * dtSeg;
+        const alvoOpX = Math.sin(estado.anguloOrbitaOp) * 16;
+        const alvoOpY = -7 + Math.cos(estado.anguloOrbitaOp * 0.7) * 10;
+        estado.oponenteVel.vx += (alvoOpX - estado.oponenteCm.x) * 2.6 * dtSeg;
+        estado.oponenteVel.vy += (alvoOpY - estado.oponenteCm.y) * 2.6 * dtSeg;
+      }
+
+      // Colisão 2D com Torque de Quina (Melhoria C)
+      const distMin = CONFIG.roboTamanhoCm; // 10 cm
+      if (dist < distMin && dist > 0.001) {
+        const penetracao = distMin - dist;
+        const nx = dxOp / dist;
+        const ny = dyOp / dist;
+
+        const alinhamentoCunha = Math.max(0, fDx * nx + fDy * ny);
+
+        if (estado.modoOponente === 'fixo' || estado.alvoArraste === 'oponente') {
+          estado.roboCm.x -= nx * penetracao;
+          estado.roboCm.y -= ny * penetracao;
+        } else {
+          const vantagemRobo = (decisao.forcaMaxima ? 0.62 : 0.52) + 0.36 * alinhamentoCunha;
+          estado.oponenteCm.x += nx * penetracao * vantagemRobo;
+          estado.oponenteCm.y += ny * penetracao * vantagemRobo;
+          estado.roboCm.x -= nx * penetracao * (1 - vantagemRobo);
+          estado.roboCm.y -= ny * penetracao * (1 - vantagemRobo);
+
+          const baseEmpurrao = decisao.forcaMaxima ? 22 : 15;
+          const forcaEmpurrao = baseEmpurrao + (decisao.forcaMaxima ? 24 : 18) * alinhamentoCunha;
+          estado.oponenteVel.vx = nx * forcaEmpurrao;
+          estado.oponenteVel.vy = ny * forcaEmpurrao;
+
+          // Calcula o torque quando a lâmina empurra fora do centro (produto vetorial 2D)
+          // Se empurrar na quina esquerda/direita do oponente, faz o oponente girar!
+          const prodVetorial = fDx * ny - fDy * nx;
+          estado.oponenteVel.omegaGraus += prodVetorial * 420 * dtSeg * (0.4 + alinhamentoCunha);
+        }
+      }
+
+      // Integra posição, rotação e atrito do oponente
+      if (estado.modoOponente !== 'fixo' && estado.alvoArraste !== 'oponente') {
+        estado.oponenteCm.x += estado.oponenteVel.vx * dtSeg;
+        estado.oponenteCm.y += estado.oponenteVel.vy * dtSeg;
+        estado.rotacaoOponenteGraus += estado.oponenteVel.omegaGraus * dtSeg;
+
+        const amortecimento = Math.exp(-atritoOponente * dtSeg);
+        estado.oponenteVel.vx *= amortecimento;
+        estado.oponenteVel.vy *= amortecimento;
+        estado.oponenteVel.omegaGraus *= amortecimento;
+      }
+
+      // Mantém nosso robô dentro da borda do Dohyo
+      const raioSeguro = (CONFIG.dohyoDiametroCm / 2) - 2.8;
+      const distCentroRobo = Math.hypot(estado.roboCm.x, estado.roboCm.y);
+      if (distCentroRobo > raioSeguro) {
+        estado.roboCm.x = (estado.roboCm.x / distCentroRobo) * raioSeguro;
+        estado.roboCm.y = (estado.roboCm.y / distCentroRobo) * raioSeguro;
+      }
+
+      // Grava rastro da trajetória a cada ~1,2 cm movido (Melhoria F)
+      const ultimoPtRobo = estado.rastroRoboCm[estado.rastroRoboCm.length - 1];
+      if (!ultimoPtRobo || Math.hypot(estado.roboCm.x - ultimoPtRobo.x, estado.roboCm.y - ultimoPtRobo.y) > 1.1) {
+        estado.rastroRoboCm.push({ x: estado.roboCm.x, y: estado.roboCm.y });
+        if (estado.rastroRoboCm.length > 140) estado.rastroRoboCm.shift();
+      }
+
+      // Verifica IPPON (Oponente fora do Dohyo)
+      const distCentroOp = Math.hypot(estado.oponenteCm.x, estado.oponenteCm.y);
+      const raioForaDohyo = (CONFIG.dohyoDiametroCm / 2) - 1.2;
+      const toast = document.getElementById('toastArena');
+      if (distCentroOp > raioForaDohyo) {
+        if (!estado.ipponAlcancado) {
+          estado.ipponAlcancado = true;
+          toast.textContent = `🏆 IPPON em ${estado.tempoLutaSeg.toFixed(2).replace('.', ',')} s!`;
+        }
+        toast.classList.add('visivel');
+      } else {
+        estado.ipponAlcancado = false;
+        toast.classList.remove('visivel');
+      }
+
+      const lim = 41.5;
+      estado.oponenteCm.x = Math.max(-lim, Math.min(lim, estado.oponenteCm.x));
+      estado.oponenteCm.y = Math.max(-lim, Math.min(lim, estado.oponenteCm.y));
+
+      document.getElementById('labelGiroRobo').textContent = `${Math.round(estado.rotacaoRoboGraus)}°`;
+      document.getElementById('badgeCronometro').textContent = `⏱ ${estado.tempoLutaSeg.toFixed(2).replace('.', ',')} s`;
+    }
+
+    function loopAnimacao(timestamp) {
+      if (!estado.simulandoMovimento) return;
+      if (!estado.ultimoTimestamp) estado.ultimoTimestamp = timestamp;
+      const dt = Math.min(0.04, (timestamp - estado.ultimoTimestamp) / 1000);
+      estado.ultimoTimestamp = timestamp;
+
+      atualizarFisicaMovimento(dt);
+      executarCicloSimulacao();
+      requestAnimationFrame(loopAnimacao);
+    }
+
+    /* =========================================================================
+     * 7. ANÁLISE DE PONTOS CEGOS E INTERSEÇÕES ENTRE CONES (MELHORIA E)
+     * ========================================================================= */
+    function analisarCoberturaAngular() {
+      // Ordena sensores habilitados por ângulo para detectar buracos (pontos cegos) e interseções
+      const ativos = estado.sensores.filter((s) => s.habilitado !== false);
+      const ordenados = [...ativos].sort((a, b) => a.angulo - b.angulo);
+      const intersecoes = [];
+      let pontosCegos = 0;
+
+      for (let i = 0; i < ordenados.length - 1; i++) {
+        const atual = ordenados[i];
+        const prox = ordenados[i + 1];
+        const fimAtual = atual.angulo + atual.fov / 2;
+        const iniProx = prox.angulo - prox.fov / 2;
+
+        if (fimAtual > iniProx) {
+          intersecoes.push({
+            de: iniProx,
+            ate: fimAtual,
+            alcanceCm: Math.min(atual.alcanceCm, prox.alcanceCm)
+          });
+        } else if (iniProx - fimAtual > 2) {
+          pontosCegos++;
+        }
+      }
+
+      const elInfo = document.getElementById('infoPontosCegos');
+      if (elInfo) {
+        if (ativos.length === 0) {
+          elInfo.innerHTML = `<span style="color:var(--red); font-weight:600;">⚠️ Todos os sensores estão desligados (OFF)!</span>`;
+        } else if (pontosCegos === 0) {
+          elInfo.innerHTML = `<span style="color:var(--green); font-weight:600;">✔ Sem pontos cegos (${ativos.length}/5 ON · ${intersecoes.length} interseções ciano)</span>`;
+        } else {
+          elInfo.innerHTML = `<span style="color:var(--amber); font-weight:600;">⚠️ ${pontosCegos} ponto(s) cego(s) entre cones (${ativos.length}/5 ON)</span>`;
+        }
+      }
+
+      return intersecoes;
+    }
+
+    /* =========================================================================
+     * 8. FUNÇÃO: desenhar(leituras, infoSetor, decisao)
+     * ========================================================================= */
+    function desenhar(leituras, infoSetor, decisao) {
+      const w = canvas.width;
+      const h = canvas.height;
+      const dohyoCx = w / 2;
+      const dohyoCy = h / 2;
+      const pxPorCm = obterEscalaPxPorCm();
+
+      const roboPxX = dohyoCx + estado.roboCm.x * pxPorCm;
+      const roboPxY = dohyoCy + estado.roboCm.y * pxPorCm;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 8.1. Dohyo Oficial
+      const raioExterno = (CONFIG.dohyoDiametroCm / 2) * pxPorCm;
+      const raioInterno = ((CONFIG.dohyoDiametroCm / 2) - CONFIG.dohyoBordaBrancaCm) * pxPorCm;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(dohyoCx, dohyoCy, raioExterno, 0, Math.PI * 2);
+      ctx.fillStyle = '#f1f5f9';
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(dohyoCx, dohyoCy, raioInterno, 0, Math.PI * 2);
+      ctx.fillStyle = '#0c0e14';
+      ctx.fill();
+
+      const shikiriLargPx = CONFIG.shikiriComprimentoCm * pxPorCm;
+      const shikiriAltPx = CONFIG.shikiriEspessuraCm * pxPorCm;
+      const shikiriMeiaDistPx = (CONFIG.shikiriDistanciaCm / 2) * pxPorCm;
+
+      ctx.fillStyle = '#c2410c';
+      ctx.fillRect(
+        dohyoCx - shikiriLargPx / 2,
+        dohyoCy - shikiriMeiaDistPx - shikiriAltPx / 2,
+        shikiriLargPx,
+        shikiriAltPx
+      );
+      ctx.fillRect(
+        dohyoCx - shikiriLargPx / 2,
+        dohyoCy + shikiriMeiaDistPx - shikiriAltPx / 2,
+        shikiriLargPx,
+        shikiriAltPx
+      );
+      ctx.restore();
+
+      // 8.2. Rastro de Trajetória do Robô no Dohyo (Melhoria F)
+      if (estado.rastroRoboCm.length > 1) {
+        ctx.save();
+        ctx.beginPath();
+        estado.rastroRoboCm.forEach((pt, idx) => {
+          const px = dohyoCx + pt.x * pxPorCm;
+          const py = dohyoCy + pt.y * pxPorCm;
+          if (idx === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.28)';
+        ctx.lineWidth = 2.2;
+        ctx.setLineDash([4, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+
+      // 8.3. Cones dos Sensores + Destaque de Interseção + Feixe Laser de Reflexo
+      const intersecoes = analisarCoberturaAngular();
+
+      if (estado.mostrarCones) {
+        // Fatias de interseção angular (Melhoria E)
+        intersecoes.forEach((inter) => {
+          const radIni = grausParaRad(inter.de + estado.rotacaoRoboGraus);
+          const radFim = grausParaRad(inter.ate + estado.rotacaoRoboGraus);
+          const angIniCanvas = Math.atan2(-Math.sin(radIni), -Math.cos(radIni));
+          const angFimCanvas = Math.atan2(-Math.sin(radFim), -Math.cos(radFim));
+          const raioPx = inter.alcanceCm * pxPorCm;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(roboPxX, roboPxY);
+          ctx.arc(roboPxX, roboPxY, raioPx, angIniCanvas, angFimCanvas);
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.09)';
+          ctx.fill();
+          ctx.restore();
+        });
+
+        // Cones individuais saindo de cada sensor na borda do robô
+        leituras.forEach((sensor) => {
+          if (sensor.habilitado === false) return;
+          const sx = dohyoCx + sensor.origemCm.x * pxPorCm;
+          const sy = dohyoCy + sensor.origemCm.y * pxPorCm;
+          const alcancePx = sensor.alcanceCm * pxPorCm;
+          const angCanvas = Math.atan2(sensor.dy, sensor.dx);
+          const meioFov = grausParaRad(sensor.fov / 2);
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.arc(sx, sy, alcancePx, angCanvas - meioFov, angCanvas + meioFov);
+          ctx.closePath();
+
+          if (sensor.leitura === 1) {
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.24)';
+            ctx.strokeStyle = 'rgba(16, 185, 129, 0.9)';
+            ctx.lineWidth = 1.8;
+          } else {
+            ctx.fillStyle = 'rgba(148, 163, 184, 0.08)';
+            ctx.strokeStyle = 'rgba(148, 163, 184, 0.26)';
+            ctx.lineWidth = 1;
+          }
+          ctx.fill();
+          ctx.stroke();
+
+          const distLabel = alcancePx + 14;
+          const lx = sx + sensor.dx * distLabel;
+          const ly = sy + sensor.dy * distLabel;
+
+          ctx.font = '600 11px Inter, system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = sensor.leitura === 1 ? '#34d399' : '#64748b';
+          ctx.fillText(`${sensor.id} (${sensor.angulo}°)`, lx, ly);
+          ctx.restore();
+        });
+      }
+
+      // 8.4. Oponente (10x10 cm com rotação física real)
+      const opX = dohyoCx + estado.oponenteCm.x * pxPorCm;
+      const opY = dohyoCy + estado.oponenteCm.y * pxPorCm;
+      const opTam = CONFIG.oponenteTamanhoCm * pxPorCm;
+      desenharOponenteTecnico(opX, opY, opTam, estado.rotacaoOponenteGraus);
+
+      // 8.5. Feixes Laser de Reflexo IR onde o sensor atinge a parede do oponente (Melhoria A)
+      leituras.forEach((sensor) => {
+        if (sensor.leitura === 1 && sensor.pontoReflexoCm) {
+          const sx = dohyoCx + sensor.origemCm.x * pxPorCm;
+          const sy = dohyoCy + sensor.origemCm.y * pxPorCm;
+          const rx = dohyoCx + sensor.pontoReflexoCm.x * pxPorCm;
+          const ry = dohyoCy + sensor.pontoReflexoCm.y * pxPorCm;
+
+          ctx.save();
+          // Feixe tracejado do sensor até o ponto de impacto
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(rx, ry);
+          ctx.strokeStyle = 'rgba(52, 211, 153, 0.85)';
+          ctx.lineWidth = 1.5;
+          ctx.setLineDash([3, 3]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Ponto luminoso de reflexo na parede do oponente
+          ctx.beginPath();
+          ctx.arc(rx, ry, 4.2, 0, Math.PI * 2);
+          ctx.fillStyle = '#10b981';
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(rx, ry, 2, 0, Math.PI * 2);
+          ctx.fillStyle = '#ecfdf5';
+          ctx.fill();
+          ctx.restore();
+        }
+      });
+
+      // 8.6. Nosso Robô (10x10 cm) com Sensores FX-S50 + Sensores de Linha Branca
+      const roboTam = CONFIG.roboTamanhoCm * pxPorCm;
+      desenharRoboTecnico(roboPxX, roboPxY, roboTam, estado.rotacaoRoboGraus, leituras, decisao, pxPorCm);
+
+      // 8.7. Seta Laranja apontando do Robô para a direção do Oponente
+      const distRoboOpPx = Math.hypot(opX - roboPxX, opY - roboPxY);
+      if (distRoboOpPx > 5) {
+        const sDx = (opX - roboPxX) / distRoboOpPx;
+        const sDy = (opY - roboPxY) / distRoboOpPx;
+
+        const compSeta = Math.max(34, distRoboOpPx - opTam / 2 - 4);
+        const fimX = roboPxX + sDx * compSeta;
+        const fimY = roboPxY + sDy * compSeta;
+        const corSeta = '#f59e0b';
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(roboPxX, roboPxY);
+        ctx.lineTo(fimX, fimY);
+        ctx.strokeStyle = corSeta;
+        ctx.lineWidth = 2.6;
+        ctx.stroke();
+
+        const angSeta = Math.atan2(sDy, sDx);
+        const ponta = 10;
+        ctx.beginPath();
+        ctx.moveTo(fimX, fimY);
+        ctx.lineTo(fimX - ponta * Math.cos(angSeta - Math.PI / 6), fimY - ponta * Math.sin(angSeta - Math.PI / 6));
+        ctx.lineTo(fimX - ponta * Math.cos(angSeta + Math.PI / 6), fimY - ponta * Math.sin(angSeta + Math.PI / 6));
+        ctx.closePath();
+        ctx.fillStyle = corSeta;
+        ctx.fill();
+
+        const txt = `${infoSetor.anguloRelativoGraus.toFixed(0)}°`;
+        const meioX = roboPxX + sDx * (compSeta * 0.55) - sDy * 18;
+        const meioY = roboPxY + sDy * (compSeta * 0.55) + sDx * 18;
+
+        ctx.font = '700 12px Inter, system-ui, sans-serif';
+        const tw = ctx.measureText(txt).width + 10;
+        ctx.fillStyle = 'rgba(17, 20, 29, 0.92)';
+        ctx.strokeStyle = corSeta;
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.roundRect(meioX - tw / 2, meioY - 10, tw, 20, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#fde68a';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(txt, meioX, meioY);
+        ctx.restore();
+      }
+
+      desenharEscalaMinimalista(pxPorCm);
+    }
+
+    function desenharRoboTecnico(x, y, tam, rotacaoGraus, leituras, decisao, pxPorCm) {
+      const m = tam / 2;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(grausParaRad(rotacaoGraus));
+
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 2;
+
+      ctx.fillStyle = '#141821';
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.roundRect(-m, -m, tam, tam, 3);
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+      ctx.stroke();
+
+      // Lâmina Frontal Prateada Chanfrada
+      const altLamina = tam * 0.24;
+      const gradLamina = ctx.createLinearGradient(0, -m, 0, -m + altLamina);
+      gradLamina.addColorStop(0, '#f1f5f9');
+      gradLamina.addColorStop(0.55, '#94a3b8');
+      gradLamina.addColorStop(1, '#334155');
+
+      ctx.fillStyle = gradLamina;
+      ctx.beginPath();
+      ctx.moveTo(-m + 1, -m + 1);
+      ctx.lineTo(m - 1, -m + 1);
+      ctx.lineTo(m - 4, -m + altLamina);
+      ctx.lineTo(-m + 4, -m + altLamina);
+      ctx.closePath();
+      ctx.fill();
+
+      // 2 Sensores de Linha Branca nos cantos frontais da lâmina (Melhoria B)
+      [
+        { pos: estado.sensoresLinhaLocalCm.esq, ativo: estado.bordaEsqAtiva },
+        { pos: estado.sensoresLinhaLocalCm.dir, ativo: estado.bordaDirAtiva }
+      ].forEach((sl) => {
+        const lx = sl.pos.x * pxPorCm;
+        const ly = sl.pos.y * pxPorCm;
+        ctx.beginPath();
+        ctx.arc(lx, ly, 3.2, 0, Math.PI * 2);
+        ctx.fillStyle = sl.ativo ? '#38bdf8' : '#1e293b';
+        ctx.fill();
+        ctx.strokeStyle = sl.ativo ? '#e0f2fe' : '#475569';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+
+      // Duas Rodas Laterais
+      const rodaLarg = tam * 0.16;
+      const rodaComp = tam * 0.38;
+      const rodaY = m * 0.36;
+      [-m + 1.5, m - rodaLarg - 1.5].forEach((rx) => {
+        ctx.fillStyle = '#090b10';
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(rx, rodaY - rodaComp / 2, rodaLarg, rodaComp, 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      // Seta central indicando a FRENTE
+      ctx.fillStyle = 'rgba(241, 245, 249, 0.22)';
+      ctx.beginPath();
+      ctx.moveTo(0, -3);
+      ctx.lineTo(-6, 7);
+      ctx.lineTo(6, 7);
+      ctx.closePath();
+      ctx.fill();
+
+      // 5 Sensores FX-S50 (arrastáveis pelo usuário)
+      leituras.forEach((s, idx) => {
+        const sx = s.offsetLocalCm.x * pxPorCm;
+        const sy = s.offsetLocalCm.y * pxPorCm;
+        const radLocal = grausParaRad(s.angulo);
+        const dirX = -Math.cos(radLocal);
+        const dirY = -Math.sin(radLocal);
+        const selecionado = estado.sensorSelecionadoIdx === idx;
+        const hab = s.habilitado !== false;
+
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(Math.atan2(dirY, dirX));
+
+        if (selecionado) {
+          ctx.beginPath();
+          ctx.arc(0, 0, 8, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
+          ctx.fill();
+        }
+
+        ctx.fillStyle = !hab ? '#334155' : (s.leitura === 1 ? '#10b981' : '#f59e0b');
+        ctx.strokeStyle = selecionado ? '#38bdf8' : '#090b10';
+        ctx.lineWidth = selecionado ? 1.6 : 1.1;
+        ctx.beginPath();
+        ctx.roundRect(-4.2, -3.4, 8, 6.8, 1.5);
+        ctx.fill();
+        ctx.stroke();
+
+        if (hab && s.leitura === 1) {
+          ctx.beginPath();
+          ctx.arc(-1.5, 0, 1.8, 0, Math.PI * 2);
+          ctx.fillStyle = '#ecfdf5';
+          ctx.fill();
+        }
+        ctx.restore();
+      });
+
+      desenharSetaRoda(-m - 10, rodaY, decisao.motorEsq);
+      desenharSetaRoda(m + 10, rodaY, decisao.motorDir);
+
+      ctx.restore();
+    }
+
+    function desenharSetaRoda(x, yCentro, pwm) {
+      if (pwm === 0) return;
+      const paraFrente = pwm > 0;
+      const compMax = 20;
+      const comp = Math.max(9, (Math.abs(pwm) / 255) * compMax);
+      const yIni = paraFrente ? yCentro + comp / 2 : yCentro - comp / 2;
+      const yFim = paraFrente ? yCentro - comp / 2 : yCentro + comp / 2;
+      const cor = paraFrente ? '#10b981' : '#f59e0b';
+
+      ctx.save();
+      ctx.strokeStyle = cor;
+      ctx.fillStyle = cor;
+      ctx.lineWidth = 2.4;
+
+      ctx.beginPath();
+      ctx.moveTo(x, yIni);
+      ctx.lineTo(x, yFim);
+      ctx.stroke();
+
+      const dir = paraFrente ? -1 : 1;
+      ctx.beginPath();
+      ctx.moveTo(x, yFim + dir * 2);
+      ctx.lineTo(x - 4, yFim - dir * 4);
+      ctx.lineTo(x + 4, yFim - dir * 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function desenharOponenteTecnico(x, y, tam, rotacaoGraus) {
+      const m = tam / 2;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(grausParaRad(rotacaoGraus));
+
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+      ctx.shadowBlur = 10;
+      ctx.shadowOffsetY = 2;
+
+      ctx.fillStyle = '#251216';
+      ctx.strokeStyle = '#ef4444';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.roundRect(-m, -m, tam, tam, 3);
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+      ctx.stroke();
+
+      const altLamina = tam * 0.22;
+      const gradOp = ctx.createLinearGradient(0, m, 0, m - altLamina);
+      gradOp.addColorStop(0, '#fca5a5');
+      gradOp.addColorStop(1, '#7f1d1d');
+      ctx.fillStyle = gradOp;
+      ctx.beginPath();
+      ctx.moveTo(-m + 1, m - 1);
+      ctx.lineTo(m - 1, m - 1);
+      ctx.lineTo(m - 4, m - altLamina);
+      ctx.lineTo(-m + 4, m - altLamina);
+      ctx.closePath();
+      ctx.fill();
+
+      const rodaLarg = tam * 0.15;
+      const rodaComp = tam * 0.36;
+      const rodaY = -m * 0.35;
+      [-m + 1.5, m - rodaLarg - 1.5].forEach((rx) => {
+        ctx.fillStyle = '#090b10';
+        ctx.strokeStyle = '#7f1d1d';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(rx, rodaY - rodaComp / 2, rodaLarg, rodaComp, 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      ctx.beginPath();
+      ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(252, 165, 165, 0.75)';
+      ctx.fill();
+      ctx.restore();
+
+      ctx.save();
+      ctx.font = '600 10.5px Inter, system-ui, sans-serif';
+      ctx.fillStyle = '#fca5a5';
+      ctx.textAlign = 'center';
+      ctx.fillText('OPONENTE', x, y - m - 8);
+      ctx.restore();
+    }
+
+    function desenharEscalaMinimalista(pxPorCm) {
+      const x0 = 16;
+      const y0 = canvas.height - 16;
+      const larg10Cm = 10 * pxPorCm;
+
+      ctx.save();
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x0 + larg10Cm, y0);
+      ctx.moveTo(x0, y0 - 5);
+      ctx.lineTo(x0, y0 + 2);
+      ctx.moveTo(x0 + larg10Cm / 2, y0 - 3);
+      ctx.lineTo(x0 + larg10Cm / 2, y0 + 1);
+      ctx.moveTo(x0 + larg10Cm, y0 - 5);
+      ctx.lineTo(x0 + larg10Cm, y0 + 2);
+      ctx.stroke();
+
+      ctx.font = '500 11px Inter, system-ui, sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.textAlign = 'left';
+      ctx.fillText(`10 cm (1 cm = ${pxPorCm.toFixed(1).replace('.', ',')} px)`, x0, y0 - 9);
+      ctx.restore();
+    }
+
+    /* =========================================================================
+     * 9. ATUALIZAÇÃO DA INTERFACE E EDITOR INTERATIVO DE REGRAS (CONDIÇÃO -> AÇÃO)
+     * ========================================================================= */
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function descobrirPresetId(regra) {
+      const mEsq = limitarPwm(regra.motorEsq);
+      const mDir = limitarPwm(regra.motorDir);
+      for (const p of CONFIG.presetsAcao) {
+        if (p.motorEsq === mEsq && p.motorDir === mDir) {
+          if (p.id === 'forca_max' && (regra.texto || '').toLowerCase().includes('força máxima')) return 'forca_max';
+          if (p.id === 'atacar_reto' && !(regra.texto || '').toLowerCase().includes('força máxima')) return 'atacar_reto';
+          if (p.id !== 'forca_max' && p.id !== 'atacar_reto') return p.id;
+        }
+      }
+      return 'custom';
+    }
+
+    function renderizarEditorRegras() {
+      const ul = document.getElementById('listaRegrasPrioridade');
+      if (!ul) return;
+
+      const lista = obterListaRegrasAtiva();
+      const esq = estado.ultimoLadoVisto === 'esquerda';
+      const vBusca = Math.max(0, Math.min(255, Math.round(Number(estado.velBuscaPadrao) || 150)));
+      const pwmBuscaStr = esq ? `-${vBusca}, +${vBusca}` : `+${vBusca}, -${vBusca}`;
+
+      document.getElementById('tituloPainelDecisao').textContent = estado.modoEngenharia
+        ? `Decisão do Robô (Modo Engenharia: ${lista.length} Regras + Busca)`
+        : `Decisão do Robô (Modo Prioridade: ${lista.length} Regras + Busca)`;
+
+      const htmlRegras = lista.map((regra, idx) => {
+        const presetAtual = descobrirPresetId(regra);
+
+        const chipsHtml = [0, 1, 2, 3, 4].map((sIdx) => {
+          const val = regra.cond[sIdx];
+          const classe = val === 1 ? 'req-1' : val === 0 ? 'req-0' : 'req-any';
+          const simbolo = val === 1 ? '1' : val === 0 ? '0' : '*';
+          const dica = val === 1
+            ? `S${sIdx + 1} precisa estar LIGADO (1). Clique para mudar`
+            : val === 0
+              ? `S${sIdx + 1} precisa estar DESLIGADO (0). Clique para mudar`
+              : `S${sIdx + 1} ignorado (* = qualquer). Clique para exigir 1`;
+          return `<button type="button" class="chip-sensor ${classe}" data-regra-idx="${idx}" data-sensor-idx="${sIdx}" title="${dica}">S${sIdx + 1}:${simbolo}</button>`;
+        }).join('');
+
+        const optionsHtml = [
+          ...CONFIG.presetsAcao.map((p) => `<option value="${p.id}" ${presetAtual === p.id ? 'selected' : ''}>${p.rotulo}</option>`),
+          `<option value="custom" ${presetAtual === 'custom' ? 'selected' : ''}>✏️ Personalizado</option>`
+        ].join('');
+
+        return `
+          <li class="regra-item" data-regra="${idx + 1}">
+            <span class="r-num" title="Prioridade #${idx + 1}">#${idx + 1}</span>
+            <div class="chips-condicao">${chipsHtml}</div>
+            <div class="regra-acao-wrap">
+              <select class="select-preset-acao" data-regra-idx="${idx}" title="Escolher ação rápida">
+                ${optionsHtml}
+              </select>
+              <input type="text" class="input-texto-acao" data-regra-idx="${idx}" value="${escapeHtml(regra.texto)}" placeholder="Descrição da ação..." />
+            </div>
+            <div class="regra-pwm-wrap">
+              <span title="Motor Esquerdo (-255 a 255)">Esq:</span>
+              <input type="number" min="-255" max="255" step="5" class="input-pwm-regra" data-regra-idx="${idx}" data-motor="esq" value="${limitarPwm(regra.motorEsq)}" />
+              <span title="Motor Direito (-255 a 255)">Dir:</span>
+              <input type="number" min="-255" max="255" step="5" class="input-pwm-regra" data-regra-idx="${idx}" data-motor="dir" value="${limitarPwm(regra.motorDir)}" />
+            </div>
+            <div class="regra-botoes">
+              <button type="button" class="btn-regra-mini" data-acao-regra="subir" data-regra-idx="${idx}" title="Subir prioridade" ${idx === 0 ? 'disabled style="opacity:0.35;cursor:default;"' : ''}>↑</button>
+              <button type="button" class="btn-regra-mini" data-acao-regra="descer" data-regra-idx="${idx}" title="Descer prioridade" ${idx === lista.length - 1 ? 'disabled style="opacity:0.35;cursor:default;"' : ''}>↓</button>
+              <button type="button" class="btn-regra-mini btn-excluir" data-acao-regra="excluir" data-regra-idx="${idx}" title="Remover regra" ${lista.length <= 1 ? 'disabled style="opacity:0.35;cursor:default;"' : ''}>✕</button>
+            </div>
+          </li>
+        `;
+      }).join('');
+
+      const htmlBusca = `
+        <li class="regra-item" data-regra="${lista.length + 1}" id="itemRegraBusca">
+          <span class="r-num" title="Executada quando nenhuma regra acima é satisfeita">Busca</span>
+          <div class="chips-condicao">
+            <span style="font-size:0.74rem; color:var(--text-dim); padding:0 4px;">Se nenhuma bater (Procurar p/ último lado visto)</span>
+          </div>
+          <div class="regra-acao-wrap">
+            <span style="font-size:0.76rem; color:var(--text-dim);">Gira no próprio eixo procurando oponente</span>
+          </div>
+          <div class="regra-pwm-wrap">
+            <span>Vel. Giro:</span>
+            <input type="number" min="0" max="255" step="5" id="inputVelBusca" class="input-pwm-regra" value="${vBusca}" />
+            <span id="labelPwmBuscaAtual" style="min-width:68px; text-align:right;">(${pwmBuscaStr})</span>
+          </div>
+          <div class="regra-botoes"></div>
+        </li>
+      `;
+
+      ul.innerHTML = htmlRegras + htmlBusca;
+
+      // Eventos dos chips de condição S1..S5 (alterna: null (*) -> 1 -> 0 -> null (*))
+      ul.querySelectorAll('.chip-sensor').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const rIdx = Number(btn.dataset.regraIdx);
+          const sIdx = Number(btn.dataset.sensorIdx);
+          const atual = lista[rIdx].cond[sIdx];
+          lista[rIdx].cond[sIdx] = atual === null ? 1 : atual === 1 ? 0 : null;
+          renderizarEditorRegras();
+          executarCicloSimulacao();
+        });
+      });
+
+      // Eventos do seletor de preset de ação
+      ul.querySelectorAll('.select-preset-acao').forEach((sel) => {
+        sel.addEventListener('change', (e) => {
+          const rIdx = Number(e.target.dataset.regraIdx);
+          const preset = CONFIG.presetsAcao.find((p) => p.id === e.target.value);
+          if (preset) {
+            lista[rIdx].texto = preset.texto;
+            lista[rIdx].motorEsq = preset.motorEsq;
+            lista[rIdx].motorDir = preset.motorDir;
+            renderizarEditorRegras();
+            executarCicloSimulacao();
+          }
+        });
+      });
+
+      // Evento de digitação livre no texto da ação (sem perder o foco)
+      ul.querySelectorAll('.input-texto-acao').forEach((inp) => {
+        inp.addEventListener('input', (e) => {
+          const rIdx = Number(e.target.dataset.regraIdx);
+          lista[rIdx].texto = e.target.value;
+          executarCicloSimulacao();
+        });
+      });
+
+      // Eventos de alteração direta do PWM Esquerdo e Direito (-255 a 255)
+      ul.querySelectorAll('.input-pwm-regra[data-regra-idx]').forEach((inp) => {
+        inp.addEventListener('input', (e) => {
+          const rIdx = Number(e.target.dataset.regraIdx);
+          const qual = e.target.dataset.motor;
+          const v = limitarPwm(e.target.value);
+          if (qual === 'esq') lista[rIdx].motorEsq = v;
+          else lista[rIdx].motorDir = v;
+
+          const sel = ul.querySelector(`.select-preset-acao[data-regra-idx="${rIdx}"]`);
+          if (sel) sel.value = descobrirPresetId(lista[rIdx]);
+          executarCicloSimulacao();
+        });
+      });
+
+      // Botões de subir, descer e excluir regra
+      ul.querySelectorAll('[data-acao-regra]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const rIdx = Number(btn.dataset.regraIdx);
+          const acao = btn.dataset.acaoRegra;
+          if (acao === 'subir' && rIdx > 0) {
+            const tmp = lista[rIdx - 1];
+            lista[rIdx - 1] = lista[rIdx];
+            lista[rIdx] = tmp;
+          } else if (acao === 'descer' && rIdx < lista.length - 1) {
+            const tmp = lista[rIdx + 1];
+            lista[rIdx + 1] = lista[rIdx];
+            lista[rIdx] = tmp;
+          } else if (acao === 'excluir' && lista.length > 1) {
+            lista.splice(rIdx, 1);
+          }
+          renderizarEditorRegras();
+          executarCicloSimulacao();
+        });
+      });
+
+      // Velocidade de giro da regra de Busca
+      const inpBusca = document.getElementById('inputVelBusca');
+      if (inpBusca) {
+        inpBusca.addEventListener('input', (e) => {
+          estado.velBuscaPadrao = Math.max(0, Math.min(255, Math.round(Number(e.target.value) || 0)));
+          executarCicloSimulacao();
+        });
+      }
+    }
+
+    function atualizarDestaqueRegrasAtivas(decisao) {
+      const ul = document.getElementById('listaRegrasPrioridade');
+      if (!ul || ul.children.length === 0) {
+        renderizarEditorRegras();
+      }
+      const lista = obterListaRegrasAtiva();
+      const itemBusca = document.getElementById('itemRegraBusca');
+      if (itemBusca) {
+        itemBusca.dataset.regra = String(lista.length + 1);
+      }
+      const esq = estado.ultimoLadoVisto === 'esquerda';
+      const vBusca = Math.max(0, Math.min(255, Math.round(Number(estado.velBuscaPadrao) || 150)));
+      const lblBusca = document.getElementById('labelPwmBuscaAtual');
+      if (lblBusca) {
+        lblBusca.textContent = `(${esq ? `-${vBusca}, +${vBusca}` : `+${vBusca}, -${vBusca}`})`;
+      }
+
+      document.querySelectorAll('#listaRegrasPrioridade .regra-item').forEach((li) => {
+        li.classList.toggle('ativa', Number(li.dataset.regra) === decisao.regra);
+      });
+    }
+
+    function atualizarCardMotor(sufixo, pwm) {
+      const elVal = document.getElementById(`pwmMotor${sufixo}`);
+      const elSeta = document.getElementById(`setaMotor${sufixo}`);
+      const elSentido = document.getElementById(`sentidoMotor${sufixo}`);
+      const elBarra = document.getElementById(`barraMotor${sufixo}`);
+
+      const positivo = pwm >= 0;
+      elVal.textContent = pwm > 0 ? `+${pwm}` : pwm;
+      elVal.className = `m-val ${positivo ? 'val-pos' : 'val-neg'}`;
+
+      elSeta.textContent = positivo ? '▲' : '▼';
+      elSeta.className = `m-seta ${positivo ? 'val-pos' : 'val-neg'}`;
+
+      elSentido.textContent = positivo ? '▲ Frente' : '▼ Ré';
+      elSentido.className = `m-sentido ${positivo ? 'sentido-frente' : 'sentido-re'}`;
+
+      const pct = (Math.abs(pwm) / 255) * 50;
+      if (positivo) {
+        elBarra.style.left = '50%';
+        elBarra.style.width = `${pct}%`;
+        elBarra.style.backgroundColor = '#10b981';
+      } else {
+        elBarra.style.left = `${50 - pct}%`;
+        elBarra.style.width = `${pct}%`;
+        elBarra.style.backgroundColor = '#f59e0b';
+      }
+    }
+
+    function atualizarInterface(leituras, infoSetor, decisao) {
+      const distCentro = Math.hypot(
+        estado.oponenteCm.x - estado.roboCm.x,
+        estado.oponenteCm.y - estado.roboCm.y
+      );
+      const distBorda = Math.max(0, distCentro - CONFIG.roboTamanhoCm);
+      document.getElementById('infoPosicaoOponente').textContent =
+        `Distância: ${distBorda.toFixed(1).replace('.', ',')} cm`;
+
+      const tbody = document.getElementById('corpoTabelaLeituras');
+      tbody.innerHTML = leituras.map((item) => `
+        <tr class="${item.leitura === 1 ? 'ativa' : ''}">
+          <td><strong>${item.id}</strong> <span style="color:var(--text-dim); font-size:0.78rem;">${item.nome}</span></td>
+          <td><span style="color:var(--text-dim); font-size:0.78rem;">(${item.offsetLocalCm.x.toFixed(1)}, ${item.offsetLocalCm.y.toFixed(1)})</span> · ${item.angulo}°</td>
+          <td>${item.alcanceCm} cm</td>
+          <td><span class="badge-bit ${item.leitura === 1 ? 'bit-1' : 'bit-0'}">${item.leitura}</span></td>
+        </tr>
+      `).join('');
+
+      document.getElementById('totalSomaLeituras').textContent = `${infoSetor.somaLeituras} / 5`;
+
+      // Sensores de linha branca (SL_Esq / SL_Dir)
+      const pEsq = document.getElementById('pillBordaEsq');
+      const pDir = document.getElementById('pillBordaDir');
+      pEsq.textContent = estado.bordaEsqAtiva ? 'SL_Esq: 1 (Branco!)' : 'SL_Esq: 0 (Preto)';
+      pDir.textContent = estado.bordaDirAtiva ? 'SL_Dir: 1 (Branco!)' : 'SL_Dir: 0 (Preto)';
+      pEsq.classList.toggle('ativa', estado.bordaEsqAtiva);
+      pDir.classList.toggle('ativa', estado.bordaDirAtiva);
+
+      const containerBarras = document.getElementById('containerBarras');
+      containerBarras.innerHTML = leituras.map((item, idx) => `
+        <div class="barra-item ${item.leitura === 1 ? 'ativa' : ''}" data-idx="${idx}">
+          <div class="barra-num">${item.leitura}</div>
+          <div class="barra-trilho"><div class="barra-fill"></div></div>
+          <div class="barra-id">${item.id}</div>
+          <div class="barra-ang">${item.angulo}°</div>
+        </div>
+      `).join('');
+
+      containerBarras.querySelectorAll('.barra-item').forEach((el) => {
+        el.addEventListener('click', () => {
+          const idx = Number(el.dataset.idx);
+          if (!estado.leiturasForcadas) {
+            estado.leiturasForcadas = leituras.map((l) => l.leitura);
+          }
+          estado.leiturasForcadas[idx] = estado.leiturasForcadas[idx] === 1 ? 0 : 1;
+          executarCicloSimulacao();
+        });
+      });
+
+      const elArea = document.getElementById('valorAreaDetectada');
+      elArea.textContent = infoSetor.areaDetectada;
+      elArea.style.color = infoSetor.somaLeituras > 0 ? '#10b981' : '#8b95a7';
+
+      document.getElementById('valorAnguloOponente').textContent =
+        `${infoSetor.anguloRelativoGraus.toFixed(0)}°`;
+
+      const elAviso = document.getElementById('avisoNaoVizinhos');
+      const btnLimpar = document.getElementById('btnLimparForcado');
+      elAviso.classList.toggle('visivel', infoSetor.sensoresNaoVizinhos);
+      btnLimpar.style.display = estado.leiturasForcadas ? 'inline-flex' : 'none';
+
+      document.getElementById('infoUltimoLado').textContent =
+        `Último lado visto: ${estado.ultimoLadoVisto === 'esquerda' ? 'Esquerda' : 'Direita'}`;
+      document.getElementById('regraAtivaBadge').textContent = decisao.regra === 0
+        ? `Sobrevivência · ${decisao.sensorFoco}`
+        : `${estado.modoEngenharia ? 'Regra #' + decisao.regra : 'Prioridade #' + decisao.regra} · ${decisao.sensorFoco}`;
+      document.getElementById('textoAcaoAtual').textContent = decisao.texto;
+
+      atualizarCardMotor('Esq', decisao.motorEsq);
+      atualizarCardMotor('Dir', decisao.motorDir);
+
+      // Atualiza leitura de distância do feixe IR em cada card de sensor
+      leituras.forEach((item, idx) => {
+        const elFeixe = document.getElementById(`labelFeixe_${idx}`);
+        if (elFeixe) {
+          if (item.habilitado === false) {
+            elFeixe.innerHTML = `<span style="color:var(--red);">OFF (Desativado)</span>`;
+          } else if (item.leitura === 1 && Number.isFinite(item.distanciaFeixeCm)) {
+            elFeixe.innerHTML = `<span class="feixe-ativo">⚡ Reflexo a ${item.distanciaFeixeCm.toFixed(1).replace('.', ',')} cm</span>`;
+          } else {
+            elFeixe.textContent = 'Livre (0)';
+          }
+        }
+      });
+
+      atualizarDestaqueRegrasAtivas(decisao);
+    }
+
+    function executarCicloSimulacao() {
+      const leituras = lerSensores();
+      const infoSetor = identificarSetorEAnguloOponente(leituras);
+      const decisao = decidirAcao(leituras, infoSetor);
+
+      desenhar(leituras, infoSetor, decisao);
+      atualizarInterface(leituras, infoSetor, decisao);
+    }
+
+    /* =========================================================================
+     * 10. ARRASTE NO CANVAS E CONTROLES
+     * ========================================================================= */
+    function obterCoordenadasCm(evento) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = evento.touches ? evento.touches[0].clientX : evento.clientX;
+      const clientY = evento.touches ? evento.touches[0].clientY : evento.clientY;
+
+      const canvasX = ((clientX - rect.left) / rect.width) * canvas.width;
+      const canvasY = ((clientY - rect.top) / rect.height) * canvas.height;
+
+      const pxPorCm = obterEscalaPxPorCm();
+      return {
+        xCm: (canvasX - canvas.width / 2) / pxPorCm,
+        yCm: (canvasY - canvas.height / 2) / pxPorCm
+      };
+    }
+
+    function iniciarArraste(e) {
+      const { xCm, yCm } = obterCoordenadasCm(e);
+      estado.leiturasForcadas = null;
+
+      for (let i = 0; i < estado.sensores.length; i++) {
+        const orig = obterOrigemSensorCm(estado.sensores[i]);
+        if (Math.hypot(xCm - orig.x, yCm - orig.y) <= 1.9) {
+          estado.alvoArraste = { tipo: 'sensor', indice: i };
+          estado.sensorSelecionadoIdx = i;
+          destacarCardSensor(i);
+          executarCicloSimulacao();
+          return;
+        }
+      }
+
+      const localRobo = arenaParaLocalRoboCm(xCm, yCm);
+      if (Math.abs(localRobo.x) <= 5.0 && Math.abs(localRobo.y) <= 5.0) {
+        estado.alvoArraste = 'robo';
+        estado.sensorSelecionadoIdx = null;
+        destacarCardSensor(null);
+        return;
+      }
+
+      estado.alvoArraste = 'oponente';
+      estado.sensorSelecionadoIdx = null;
+      destacarCardSensor(null);
+      estado.oponenteVel = { vx: 0, vy: 0, omegaGraus: 0 };
+      moverOponente(xCm, yCm);
+    }
+
+    function moverArraste(e) {
+      if (!estado.alvoArraste) return;
+      if (e.cancelable) e.preventDefault();
+      const { xCm, yCm } = obterCoordenadasCm(e);
+
+      if (estado.alvoArraste.tipo === 'sensor') {
+        const idx = estado.alvoArraste.indice;
+        const local = arenaParaLocalRoboCm(xCm, yCm);
+        const limChassi = 4.9;
+        const nx = Math.max(-limChassi, Math.min(limChassi, local.x));
+        const ny = Math.max(-limChassi, Math.min(limChassi, local.y));
+        estado.sensores[idx].offsetLocalCm.x = Number(nx.toFixed(1));
+        estado.sensores[idx].offsetLocalCm.y = Number(ny.toFixed(1));
+        sincronizarSlidersSensor(idx);
+        aplicarSimetriaEspelhada(idx);
+        if (!estado.simulandoMovimento) executarCicloSimulacao();
+        return;
+      }
+
+      if (estado.alvoArraste === 'robo') {
+        const limRobo = 32;
+        estado.roboCm.x = Math.max(-limRobo, Math.min(limRobo, xCm));
+        estado.roboCm.y = Math.max(-limRobo, Math.min(limRobo, yCm));
+        estado.roboVel = { vx: 0, vy: 0, omegaGraus: 0 };
+        if (!estado.simulandoMovimento) executarCicloSimulacao();
+        return;
+      }
+
+      if (estado.alvoArraste === 'oponente') {
+        estado.oponenteVel = { vx: 0, vy: 0, omegaGraus: 0 };
+        moverOponente(xCm, yCm);
+      }
+    }
+
+    function encerrarArraste() {
+      estado.alvoArraste = null;
+    }
+
+    function moverOponente(xCm, yCm) {
+      const lim = 41.5;
+      estado.oponenteCm.x = Math.max(-lim, Math.min(lim, xCm));
+      estado.oponenteCm.y = Math.max(-lim, Math.min(lim, yCm));
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    }
+
+    canvas.addEventListener('mousedown', iniciarArraste);
+    window.addEventListener('mousemove', moverArraste);
+    window.addEventListener('mouseup', encerrarArraste);
+
+    canvas.addEventListener('touchstart', iniciarArraste, { passive: false });
+    window.addEventListener('touchmove', moverArraste, { passive: false });
+    window.addEventListener('touchend', encerrarArraste);
+
+    function destacarCardSensor(idx) {
+      document.querySelectorAll('.slider-card').forEach((card, i) => {
+        card.classList.toggle('selecionado', i === idx);
+      });
+    }
+
+    function sincronizarSlidersSensor(idx) {
+      const s = estado.sensores[idx];
+      const elPos = document.getElementById(`labelPos_${idx}`);
+      if (elPos) elPos.textContent = `(${s.offsetLocalCm.x.toFixed(1)}, ${s.offsetLocalCm.y.toFixed(1)}) cm`;
+      const sx = document.querySelector(`.slider-pos-x[data-idx="${idx}"]`);
+      const sy = document.querySelector(`.slider-pos-y[data-idx="${idx}"]`);
+      if (sx) sx.value = s.offsetLocalCm.x;
+      if (sy) sy.value = s.offsetLocalCm.y;
+
+      const elAng = document.getElementById(`labelAng_${idx}`);
+      const sAng = document.querySelector(`.slider-angulo[data-idx="${idx}"]`);
+      if (elAng) elAng.textContent = `${s.angulo}°`;
+      if (sAng) sAng.value = s.angulo;
+
+      const elAlc = document.getElementById(`labelAlcance_${idx}`);
+      const sAlc = document.querySelector(`.slider-alcance[data-idx="${idx}"]`);
+      if (elAlc) elAlc.textContent = `${s.alcanceCm} cm`;
+      if (sAlc) sAlc.value = s.alcanceCm;
+
+      const elFov = document.getElementById(`labelFov_${idx}`);
+      const sFov = document.querySelector(`.slider-fov-ind[data-idx="${idx}"]`);
+      if (elFov) elFov.textContent = `${s.fov}°`;
+      if (sFov) sFov.value = s.fov;
+
+      const card = document.querySelector(`.slider-card[data-card-idx="${idx}"]`);
+      const btnOnOff = document.querySelector(`.btn-toggle-sensor[data-idx="${idx}"]`);
+      const hab = s.habilitado !== false;
+      if (card) card.classList.toggle('desativado', !hab);
+      if (btnOnOff) {
+        btnOnOff.classList.toggle('off', !hab);
+        btnOnOff.textContent = hab ? 'ON' : 'OFF';
+      }
+    }
+
+    function obterIndiceEspelho(idx) {
+      if (idx === 0) return 4;
+      if (idx === 4) return 0;
+      if (idx === 1) return 3;
+      if (idx === 3) return 1;
+      return null;
+    }
+
+    function aplicarSimetriaEspelhada(idx) {
+      if (!estado.simetriaAtiva) return;
+      const espelhoIdx = obterIndiceEspelho(idx);
+      if (espelhoIdx === null) return;
+
+      const orig = estado.sensores[idx];
+      const dest = estado.sensores[espelhoIdx];
+      dest.offsetLocalCm.x = Number((-orig.offsetLocalCm.x).toFixed(1));
+      dest.offsetLocalCm.y = Number(orig.offsetLocalCm.y.toFixed(1));
+      dest.angulo = Math.max(-90, Math.min(270, Math.round(180 - orig.angulo)));
+      dest.alcanceCm = orig.alcanceCm;
+      dest.fov = orig.fov;
+      dest.habilitado = orig.habilitado !== false;
+      sincronizarSlidersSensor(espelhoIdx);
+    }
+
+    function criarSlidersSensores() {
+      const container = document.getElementById('containerSlidersSensores');
+      container.innerHTML = estado.sensores.map((s, idx) => {
+        const hab = s.habilitado !== false;
+        return `
+          <div class="slider-card ${hab ? '' : 'desativado'}" data-card-idx="${idx}">
+            <div class="slider-card-titulo">
+              <span>${s.id} · ${s.nome}</span>
+              <div style="display:flex; align-items:center; gap:5px;">
+                <span class="slider-val" id="labelAng_${idx}">${s.angulo}°</span>
+                <button type="button" class="btn-toggle-sensor ${hab ? '' : 'off'}" data-idx="${idx}" title="Ativar ou desativar este sensor">${hab ? 'ON' : 'OFF'}</button>
+              </div>
+            </div>
+
+            <div class="slider-linha">
+              <span>Direção (-90° a 270°)</span>
+            </div>
+            <input type="range" min="-90" max="270" step="1" value="${s.angulo}" data-idx="${idx}" class="slider-angulo" />
+            <div class="mini-btns-row">
+              <button type="button" class="btn-mini-snap" data-snap-ang="0" data-idx="${idx}" title="Apontar p/ Esquerda (0°)">0°</button>
+              <button type="button" class="btn-mini-snap" data-snap-ang="45" data-idx="${idx}" title="Diagonal Esquerda (45°)">45°</button>
+              <button type="button" class="btn-mini-snap" data-snap-ang="90" data-idx="${idx}" title="Frente (90°)">90°</button>
+              <button type="button" class="btn-mini-snap" data-snap-ang="135" data-idx="${idx}" title="Diagonal Direita (135°)">135°</button>
+              <button type="button" class="btn-mini-snap" data-snap-ang="180" data-idx="${idx}" title="Apontar p/ Direita (180°)">180°</button>
+            </div>
+
+            <div class="slider-linha">
+              <span>Posição X / Y</span>
+              <span class="slider-val" id="labelPos_${idx}">(${s.offsetLocalCm.x.toFixed(1)}, ${s.offsetLocalCm.y.toFixed(1)}) cm</span>
+            </div>
+            <div style="display:flex; gap:4px;">
+              <input type="range" min="-4.9" max="4.9" step="0.2" value="${s.offsetLocalCm.x}" data-idx="${idx}" class="slider-pos-x" title="Posição Lateral X (-4,9 a +4,9 cm)" />
+              <input type="range" min="-4.9" max="4.9" step="0.2" value="${s.offsetLocalCm.y}" data-idx="${idx}" class="slider-pos-y" title="Posição Longitudinal Y (-4,9 = Lâmina, +4,9 = Traseira)" />
+            </div>
+            <div class="mini-btns-row">
+              <button type="button" class="btn-mini-snap" data-snap-pos="lamina" data-idx="${idx}" title="Fixar na lâmina frontal (Y = -4,7)">Lâmina</button>
+              <button type="button" class="btn-mini-snap" data-snap-pos="quina" data-idx="${idx}" title="Fixar na quina frontal">Quina</button>
+              <button type="button" class="btn-mini-snap" data-snap-pos="lateral" data-idx="${idx}" title="Fixar na lateral do chassi">Lateral</button>
+              <button type="button" class="btn-mini-snap" data-snap-pos="centro" data-idx="${idx}" title="Centralizar no eixo X (X = 0)">X=0</button>
+            </div>
+
+            <div class="slider-linha">
+              <span>Alcance</span>
+              <span class="slider-val" id="labelAlcance_${idx}">${s.alcanceCm} cm</span>
+            </div>
+            <input type="range" min="5" max="60" step="1" value="${s.alcanceCm}" data-idx="${idx}" class="slider-alcance" />
+
+            <div class="slider-linha">
+              <span>Abertura Cone</span>
+              <span class="slider-val" id="labelFov_${idx}">${s.fov}°</span>
+            </div>
+            <input type="range" min="10" max="90" step="1" value="${s.fov}" data-idx="${idx}" class="slider-fov-ind" />
+
+            <div class="rodape-feixe-card">
+              <span>Feixe IR:</span>
+              <span id="labelFeixe_${idx}">Livre (0)</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.btn-toggle-sensor').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.idx);
+          const atual = estado.sensores[idx].habilitado !== false;
+          estado.sensores[idx].habilitado = !atual;
+          sincronizarSlidersSensor(idx);
+          aplicarSimetriaEspelhada(idx);
+          if (!estado.simulandoMovimento) executarCicloSimulacao();
+        });
+      });
+
+      container.querySelectorAll('.slider-angulo').forEach((inp) => {
+        inp.addEventListener('input', (e) => {
+          const idx = Number(e.target.dataset.idx);
+          estado.sensores[idx].angulo = Number(e.target.value);
+          sincronizarSlidersSensor(idx);
+          aplicarSimetriaEspelhada(idx);
+          estado.sensorSelecionadoIdx = idx;
+          destacarCardSensor(idx);
+          if (!estado.simulandoMovimento) executarCicloSimulacao();
+        });
+      });
+
+      container.querySelectorAll('[data-snap-ang]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.idx);
+          estado.sensores[idx].angulo = Number(btn.dataset.snapAng);
+          sincronizarSlidersSensor(idx);
+          aplicarSimetriaEspelhada(idx);
+          estado.sensorSelecionadoIdx = idx;
+          destacarCardSensor(idx);
+          if (!estado.simulandoMovimento) executarCicloSimulacao();
+        });
+      });
+
+      container.querySelectorAll('.slider-pos-x').forEach((inp) => {
+        inp.addEventListener('input', (e) => {
+          const idx = Number(e.target.dataset.idx);
+          estado.sensores[idx].offsetLocalCm.x = Number(e.target.value);
+          sincronizarSlidersSensor(idx);
+          aplicarSimetriaEspelhada(idx);
+          estado.sensorSelecionadoIdx = idx;
+          destacarCardSensor(idx);
+          if (!estado.simulandoMovimento) executarCicloSimulacao();
+        });
+      });
+
+      container.querySelectorAll('.slider-pos-y').forEach((inp) => {
+        inp.addEventListener('input', (e) => {
+          const idx = Number(e.target.dataset.idx);
+          estado.sensores[idx].offsetLocalCm.y = Number(e.target.value);
+          sincronizarSlidersSensor(idx);
+          aplicarSimetriaEspelhada(idx);
+          estado.sensorSelecionadoIdx = idx;
+          destacarCardSensor(idx);
+          if (!estado.simulandoMovimento) executarCicloSimulacao();
+        });
+      });
+
+      container.querySelectorAll('[data-snap-pos]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.dataset.idx);
+          const tipo = btn.dataset.snapPos;
+          const s = estado.sensores[idx];
+          const sinalX = idx < 2 ? -1 : idx > 2 ? 1 : (s.offsetLocalCm.x < 0 ? -1 : 1);
+          if (tipo === 'lamina') {
+            s.offsetLocalCm.y = -4.7;
+          } else if (tipo === 'quina') {
+            s.offsetLocalCm.x = Number((sinalX * 4.4).toFixed(1));
+            s.offsetLocalCm.y = -4.4;
+          } else if (tipo === 'lateral') {
+            s.offsetLocalCm.x = Number((sinalX * 4.6).toFixed(1));
+            s.offsetLocalCm.y = -0.4;
+          } else if (tipo === 'centro') {
+            s.offsetLocalCm.x = 0.0;
+          }
+          sincronizarSlidersSensor(idx);
+          aplicarSimetriaEspelhada(idx);
+          estado.sensorSelecionadoIdx = idx;
+          destacarCardSensor(idx);
+          if (!estado.simulandoMovimento) executarCicloSimulacao();
+        });
+      });
+
+      container.querySelectorAll('.slider-alcance').forEach((inp) => {
+        inp.addEventListener('input', (e) => {
+          const idx = Number(e.target.dataset.idx);
+          estado.sensores[idx].alcanceCm = Number(e.target.value);
+          sincronizarSlidersSensor(idx);
+          aplicarSimetriaEspelhada(idx);
+          if (!estado.simulandoMovimento) executarCicloSimulacao();
+        });
+      });
+
+      container.querySelectorAll('.slider-fov-ind').forEach((inp) => {
+        inp.addEventListener('input', (e) => {
+          const idx = Number(e.target.dataset.idx);
+          estado.sensores[idx].fov = Number(e.target.value);
+          sincronizarSlidersSensor(idx);
+          aplicarSimetriaEspelhada(idx);
+          if (!estado.simulandoMovimento) executarCicloSimulacao();
+        });
+      });
+    }
+
+    document.querySelectorAll('[data-preset]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = btn.dataset.preset;
+        if (p === 'padrao') {
+          estado.sensores = JSON.parse(JSON.stringify(CONFIG.sensoresPadrao));
+        } else if (p === 'cruzado') {
+          estado.sensores = [
+            { id: 'S1', nome: 'Lat. Esq',  angulo: 0,   fov: 40, alcanceCm: 12, offsetLocalCm: { x: -4.6, y: 0.0 } },
+            { id: 'S2', nome: 'Cruz. Esq', angulo: 72,  fov: 32, alcanceCm: 26, offsetLocalCm: { x:  3.6, y: -4.6 } },
+            { id: 'S3', nome: 'Frente',    angulo: 90,  fov: 35, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -4.7 } },
+            { id: 'S4', nome: 'Cruz. Dir', angulo: 108, fov: 32, alcanceCm: 26, offsetLocalCm: { x: -3.6, y: -4.6 } },
+            { id: 'S5', nome: 'Lat. Dir',  angulo: 180, fov: 40, alcanceCm: 12, offsetLocalCm: { x:  4.6, y: 0.0 } }
+          ];
+        } else if (p === 'frontal') {
+          estado.sensores = [
+            { id: 'S1', nome: 'Frente Esq++', angulo: 35,  fov: 35, alcanceCm: 18, offsetLocalCm: { x: -4.4, y: -4.6 } },
+            { id: 'S2', nome: 'Frente Esq',   angulo: 65,  fov: 35, alcanceCm: 25, offsetLocalCm: { x: -2.2, y: -4.7 } },
+            { id: 'S3', nome: 'Centro',       angulo: 90,  fov: 35, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -4.7 } },
+            { id: 'S4', nome: 'Frente Dir',   angulo: 115, fov: 35, alcanceCm: 25, offsetLocalCm: { x:  2.2, y: -4.7 } },
+            { id: 'S5', nome: 'Frente Dir++', angulo: 145, fov: 35, alcanceCm: 18, offsetLocalCm: { x:  4.4, y: -4.6 } }
+          ];
+        } else if (p === 'paralelo') {
+          estado.sensores = [
+            { id: 'S1', nome: 'Lat. Esq',     angulo: 0,   fov: 40, alcanceCm: 12, offsetLocalCm: { x: -4.6, y: 0.0 } },
+            { id: 'S2', nome: 'Reto Esq',     angulo: 90,  fov: 24, alcanceCm: 30, offsetLocalCm: { x: -3.8, y: -4.7 } },
+            { id: 'S3', nome: 'Reto Centro',  angulo: 90,  fov: 24, alcanceCm: 34, offsetLocalCm: { x:  0.0, y: -4.7 } },
+            { id: 'S4', nome: 'Reto Dir',     angulo: 90,  fov: 24, alcanceCm: 30, offsetLocalCm: { x:  3.8, y: -4.7 } },
+            { id: 'S5', nome: 'Lat. Dir',     angulo: 180, fov: 40, alcanceCm: 12, offsetLocalCm: { x:  4.6, y: 0.0 } }
+          ];
+        } else if (p === 'convergente') {
+          estado.sensores = [
+            { id: 'S1', nome: 'Conv. Esq++',  angulo: 65,  fov: 32, alcanceCm: 22, offsetLocalCm: { x: -4.5, y: -4.5 } },
+            { id: 'S2', nome: 'Conv. Esq',    angulo: 80,  fov: 30, alcanceCm: 28, offsetLocalCm: { x: -2.4, y: -4.7 } },
+            { id: 'S3', nome: 'Centro Focal', angulo: 90,  fov: 30, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -4.7 } },
+            { id: 'S4', nome: 'Conv. Dir',    angulo: 100, fov: 30, alcanceCm: 28, offsetLocalCm: { x:  2.4, y: -4.7 } },
+            { id: 'S5', nome: 'Conv. Dir++',  angulo: 115, fov: 32, alcanceCm: 22, offsetLocalCm: { x:  4.5, y: -4.5 } }
+          ];
+        } else if (p === 'sniper') {
+          estado.sensores = [
+            { id: 'S1', nome: 'Busca Esq',    angulo: 20,  fov: 22, alcanceCm: 38, offsetLocalCm: { x: -4.5, y: -3.0 } },
+            { id: 'S2', nome: 'Sniper Esq',   angulo: 75,  fov: 18, alcanceCm: 48, offsetLocalCm: { x: -2.5, y: -4.7 } },
+            { id: 'S3', nome: 'Sniper Centro',angulo: 90,  fov: 16, alcanceCm: 55, offsetLocalCm: { x:  0.0, y: -4.7 } },
+            { id: 'S4', nome: 'Sniper Dir',   angulo: 105, fov: 18, alcanceCm: 48, offsetLocalCm: { x:  2.5, y: -4.7 } },
+            { id: 'S5', nome: 'Busca Dir',    angulo: 160, fov: 22, alcanceCm: 38, offsetLocalCm: { x:  4.5, y: -3.0 } }
+          ];
+        } else if (p === 'radar360') {
+          estado.sensores = [
+            { id: 'S1', nome: 'Costas Esq',   angulo: -45, fov: 50, alcanceCm: 18, offsetLocalCm: { x: -4.5, y:  4.2 } },
+            { id: 'S2', nome: 'Diag. Esq',    angulo: 45,  fov: 45, alcanceCm: 24, offsetLocalCm: { x: -4.4, y: -4.4 } },
+            { id: 'S3', nome: 'Frente',       angulo: 90,  fov: 45, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -4.7 } },
+            { id: 'S4', nome: 'Diag. Dir',    angulo: 135, fov: 45, alcanceCm: 24, offsetLocalCm: { x:  4.4, y: -4.4 } },
+            { id: 'S5', nome: 'Costas Dir',   angulo: 225, fov: 50, alcanceCm: 18, offsetLocalCm: { x:  4.5, y:  4.2 } }
+          ];
+        } else if (p === 'cacador-esq') {
+          // Otimizado para disparar S1+S2+S3 juntos na frente/esquerda (Força Máxima!)
+          estado.sensores = [
+            { id: 'S1', nome: 'Foco Esq 1',   angulo: 68,  fov: 42, alcanceCm: 26, offsetLocalCm: { x: -4.4, y: -4.6 } },
+            { id: 'S2', nome: 'Foco Esq 2',   angulo: 82,  fov: 42, alcanceCm: 28, offsetLocalCm: { x: -2.2, y: -4.7 } },
+            { id: 'S3', nome: 'Foco Centro',  angulo: 90,  fov: 42, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -4.7 } },
+            { id: 'S4', nome: 'Diag. Dir',    angulo: 130, fov: 40, alcanceCm: 22, offsetLocalCm: { x:  4.2, y: -4.4 } },
+            { id: 'S5', nome: 'Lat. Dir',     angulo: 180, fov: 40, alcanceCm: 14, offsetLocalCm: { x:  4.6, y: -0.4 } }
+          ];
+        }
+        criarSlidersSensores();
+        if (!estado.simulandoMovimento) executarCicloSimulacao();
+      });
+    });
+
+    document.getElementById('checkSimetria').addEventListener('change', (e) => {
+      estado.simetriaAtiva = e.target.checked;
+      if (estado.simetriaAtiva) {
+        aplicarSimetriaEspelhada(0);
+        aplicarSimetriaEspelhada(1);
+        if (!estado.simulandoMovimento) executarCicloSimulacao();
+      }
+    });
+
+    document.getElementById('btnSnapPerimetro').addEventListener('click', () => {
+      const lim = 4.6;
+      estado.sensores.forEach((s, idx) => {
+        const rad = grausParaRad(s.angulo);
+        const dx = -Math.cos(rad);
+        const dy = -Math.sin(rad);
+        const escala = lim / Math.max(Math.abs(dx), Math.abs(dy), 0.001);
+        s.offsetLocalCm.x = Number((dx * escala).toFixed(1));
+        s.offsetLocalCm.y = Number((dy * escala).toFixed(1));
+        sincronizarSlidersSensor(idx);
+      });
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    });
+
+    document.getElementById('btnAlinharLamina').addEventListener('click', () => {
+      const xs = [-4.4, -2.2, 0.0, 2.2, 4.4];
+      estado.sensores.forEach((s, idx) => {
+        s.offsetLocalCm.x = xs[idx];
+        s.offsetLocalCm.y = -4.7;
+        sincronizarSlidersSensor(idx);
+      });
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    });
+
+    document.getElementById('btnAtivarTodosSensores').addEventListener('click', () => {
+      estado.sensores.forEach((s, idx) => {
+        s.habilitado = true;
+        sincronizarSlidersSensor(idx);
+      });
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    });
+
+    document.getElementById('sliderFovGlobal').addEventListener('input', (e) => {
+      const v = Number(e.target.value);
+      document.getElementById('labelFovGlobal').textContent = `${v}°`;
+      estado.sensores.forEach((s, idx) => {
+        s.fov = v;
+        sincronizarSlidersSensor(idx);
+      });
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    });
+
+    document.getElementById('sliderAlcanceGlobal').addEventListener('input', (e) => {
+      const v = Number(e.target.value);
+      document.getElementById('labelAlcanceGlobal').textContent = `${v} cm`;
+      estado.sensores.forEach((s, idx) => {
+        s.alcanceCm = v;
+        sincronizarSlidersSensor(idx);
+      });
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    });
+
+    document.getElementById('sliderPassoAngularGlobal').addEventListener('input', (e) => {
+      const passo = Number(e.target.value);
+      document.getElementById('labelPassoAngularGlobal').textContent = `${passo}°`;
+      // Distribui S1..S5 simetricamente em torno de 90° (Frente)
+      const multiplicadores = [-2, -1, 0, 1, 2];
+      estado.sensores.forEach((s, idx) => {
+        s.angulo = Math.max(-90, Math.min(270, Math.round(90 + multiplicadores[idx] * passo)));
+        sincronizarSlidersSensor(idx);
+      });
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    });
+
+    function atualizarPosicaoSensoresLinha() {
+      const lx = Number(document.getElementById('sliderLinhaX').value);
+      const ly = Number(document.getElementById('sliderLinhaY').value);
+      estado.sensoresLinhaLocalCm.esq = { x: -lx, y: ly };
+      estado.sensoresLinhaLocalCm.dir = { x:  lx, y: ly };
+      document.getElementById('labelPosSensoresLinha').textContent =
+        `X: ±${lx.toFixed(1).replace('.', ',')} · Y: ${ly.toFixed(1).replace('.', ',')} cm`;
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    }
+
+    document.getElementById('sliderLinhaX').addEventListener('input', atualizarPosicaoSensoresLinha);
+    document.getElementById('sliderLinhaY').addEventListener('input', atualizarPosicaoSensoresLinha);
+
+    const btnModoPrio = document.getElementById('btnModoPrioridade');
+    const btnModoEng = document.getElementById('btnModoEngenharia');
+    const txtExplicacao = document.getElementById('textoExplicacaoModo');
+
+    function definirModoEngenharia(ativo) {
+      estado.modoEngenharia = ativo;
+      btnModoPrio.classList.toggle('modo-ativo', !ativo);
+      btnModoEng.classList.toggle('modo-ativo', ativo);
+
+      if (!ativo) {
+        txtExplicacao.innerHTML = `
+          <strong>Modo 1 — Prioridade Customizável:</strong><br />
+          Avalia suas regras de cima para baixo (a regra #1 <code>S1+S2+S3</code> dispara <strong>Força máxima 255, 255</strong>). Você pode clicar nos botões <code>S1..S5</code> abaixo para mudar qualquer condição ou ação!
+        `;
+      } else {
+        txtExplicacao.innerHTML = `
+          <strong>Modo Engenharia — Interseção de Cones Customizável:</strong><br />
+          Aproveita quando múltiplos sensores ativam juntos (ex.: <code>S1+S2+S3</code>, <code>S2+S3</code>) para criar <strong>zonas intermediárias</strong>. Edite qualquer condição ou velocidade abaixo!
+        `;
+      }
+      renderizarEditorRegras();
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    }
+
+    btnModoPrio.addEventListener('click', () => definirModoEngenharia(false));
+    btnModoEng.addEventListener('click', () => definirModoEngenharia(true));
+
+    document.getElementById('btnAdicionarRegra').addEventListener('click', () => {
+      const lista = obterListaRegrasAtiva();
+      lista.unshift({
+        cond: [1, 1, 1, null, null],
+        texto: 'Nova regra personalizada',
+        motorEsq: 255,
+        motorDir: 255
+      });
+      renderizarEditorRegras();
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    });
+
+    document.getElementById('btnResetarRegras').addEventListener('click', () => {
+      if (estado.modoEngenharia) {
+        estado.regrasEngenharia = JSON.parse(JSON.stringify(CONFIG.regrasPadraoEngenharia));
+      } else {
+        estado.regrasPrioridade = JSON.parse(JSON.stringify(CONFIG.regrasPadraoPrioridade));
+      }
+      estado.velBuscaPadrao = 150;
+      renderizarEditorRegras();
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    });
+
+    const btnPlay = document.getElementById('btnPlaySimulacao');
+    function definirPlaySimulacao(rodar) {
+      estado.simulandoMovimento = rodar;
+      estado.ultimoTimestamp = 0;
+      btnPlay.classList.toggle('rodando', rodar);
+      btnPlay.textContent = rodar ? '⏸ Pausar Física' : '▶ Rodar Física (Play)';
+      if (rodar) {
+        estado.leiturasForcadas = null;
+        if (estado.ipponAlcancado) {
+          estado.tempoLutaSeg = 0;
+          estado.ipponAlcancado = false;
+        }
+        requestAnimationFrame(loopAnimacao);
+      }
+    }
+
+    btnPlay.addEventListener('click', () => definirPlaySimulacao(!estado.simulandoMovimento));
+
+    document.getElementById('selectModoOponente').addEventListener('change', (e) => {
+      estado.modoOponente = e.target.value;
+      estado.oponenteVel = { vx: 0, vy: 0, omegaGraus: 0 };
+    });
+
+    function atualizarRotacaoRobo(ang) {
+      estado.rotacaoRoboGraus = ((ang % 360) + 360) % 360;
+      if (estado.rotacaoRoboGraus > 180) estado.rotacaoRoboGraus -= 360;
+      document.getElementById('labelGiroRobo').textContent = `${Math.round(estado.rotacaoRoboGraus)}°`;
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    }
+
+    document.getElementById('btnGirarEsq').addEventListener('click', () => atualizarRotacaoRobo(estado.rotacaoRoboGraus - 15));
+    document.getElementById('btnGirarDir').addEventListener('click', () => atualizarRotacaoRobo(estado.rotacaoRoboGraus + 15));
+    document.getElementById('btnGirarZero').addEventListener('click', () => {
+      estado.roboCm = { x: 0, y: 10.5 };
+      estado.roboVel = { vx: 0, vy: 0, omegaGraus: 0 };
+      estado.rastroRoboCm = [];
+      atualizarRotacaoRobo(0);
+    });
+
+    const btnToggleCones = document.getElementById('btnToggleCones');
+    btnToggleCones.addEventListener('click', () => {
+      estado.mostrarCones = !estado.mostrarCones;
+      btnToggleCones.classList.toggle('ativo', estado.mostrarCones);
+      btnToggleCones.textContent = estado.mostrarCones ? 'Cones Visíveis' : 'Mostrar Cones';
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    });
+
+    document.getElementById('btnLimparForcado').addEventListener('click', () => {
+      estado.leiturasForcadas = null;
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    });
+
+    function reiniciarCronometroERastro() {
+      estado.tempoLutaSeg = 0;
+      estado.ipponAlcancado = false;
+      estado.rastroRoboCm = [];
+      estado.oponenteVel = { vx: 0, vy: 0, omegaGraus: 0 };
+      estado.roboVel = { vx: 0, vy: 0, omegaGraus: 0 };
+      estado.rotacaoOponenteGraus = 0;
+      document.getElementById('badgeCronometro').textContent = '⏱ 0,00 s';
+      document.getElementById('toastArena').classList.remove('visivel');
+    }
+
+    function posicionarNoReferencial(indiceSensor, distBordaCm) {
+      estado.leiturasForcadas = null;
+      reiniciarCronometroERastro();
+      const sensor = estado.sensores[indiceSensor];
+      const origemCm = obterOrigemSensorCm(sensor);
+      const rad = grausParaRad(sensor.angulo + estado.rotacaoRoboGraus);
+      const distAteCentroOp = distBordaCm + CONFIG.oponenteTamanhoCm / 2;
+
+      estado.oponenteCm.x = origemCm.x + (-Math.cos(rad) * distAteCentroOp);
+      estado.oponenteCm.y = origemCm.y + (-Math.sin(rad) * distAteCentroOp);
+      if (!estado.simulandoMovimento) executarCicloSimulacao();
+    }
+
+    document.querySelectorAll('[data-cenario]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const c = btn.dataset.cenario;
+        reiniciarCronometroERastro();
+        estado.leiturasForcadas = null;
+
+        if (c === 'frente') {
+          estado.roboCm = { x: 0, y: 10.5 };
+          estado.rotacaoRoboGraus = 0;
+          estado.oponenteCm = { x: 0, y: -10.5 };
+        } else if (c === 'lado-a-lado') {
+          // Largada oficial lateral (ambos apontando 90° para a direita nas linhas Shikiri-sen)
+          estado.roboCm = { x: 0, y: 10.5 };
+          estado.rotacaoRoboGraus = 90;
+          estado.oponenteCm = { x: 0, y: -10.5 };
+          estado.rotacaoOponenteGraus = 90;
+        } else if (c === 'costas') {
+          // Largada oficial de costas (180° nas linhas Shikiri-sen)
+          estado.roboCm = { x: 0, y: 10.5 };
+          estado.rotacaoRoboGraus = 180;
+          estado.oponenteCm = { x: 0, y: -10.5 };
+          estado.rotacaoOponenteGraus = 180;
+        } else if (c === 's1-s2-s3') {
+          // Posiciona o oponente 10x10 cm na quina frontal-esquerda onde S1, S2 e S3 detectam juntos!
+          estado.roboCm = { x: 0, y: 10.5 };
+          estado.rotacaoRoboGraus = 0;
+          estado.oponenteCm = { x: -5.4, y: 3.5 };
+        } else if (c === 'diagonal-esquerda') {
+          posicionarNoReferencial(1, 11);
+        } else if (c === 'intersecao') {
+          estado.oponenteCm = { x: estado.roboCm.x - 5.2, y: estado.roboCm.y - 12.5 };
+        } else if (c === 'lateral-direita') {
+          posicionarNoReferencial(4, 6);
+        } else if (c === 'fora') {
+          estado.oponenteCm = { x: 22, y: -22 };
+        } else if (c === 'nao-vizinhos') {
+          definirPlaySimulacao(false);
+          estado.leiturasForcadas = [1, 0, 0, 0, 1];
+        }
+        document.getElementById('labelGiroRobo').textContent = `${Math.round(estado.rotacaoRoboGraus)}°`;
+        if (!estado.simulandoMovimento) executarCicloSimulacao();
+      });
+    });
+
+    document.getElementById('btnResetar').addEventListener('click', () => {
+      definirPlaySimulacao(false);
+      estado.sensores = JSON.parse(JSON.stringify(CONFIG.sensoresPadrao));
+      estado.sensoresLinhaLocalCm = JSON.parse(JSON.stringify(CONFIG.sensoresLinhaLocalCm));
+      estado.simetriaAtiva = true;
+      estado.regrasPrioridade = JSON.parse(JSON.stringify(CONFIG.regrasPadraoPrioridade));
+      estado.regrasEngenharia = JSON.parse(JSON.stringify(CONFIG.regrasPadraoEngenharia));
+      estado.velBuscaPadrao = 150;
+      estado.roboCm = { x: 0, y: 10.5 };
+      estado.oponenteCm = { x: 0, y: -10.5 };
+      estado.rotacaoRoboGraus = 0;
+      estado.tempoManobraBorda = 0;
+      estado.mostrarCones = true;
+      estado.ultimoLadoVisto = 'esquerda';
+      estado.leiturasForcadas = null;
+      estado.sensorSelecionadoIdx = null;
+      reiniciarCronometroERastro();
+
+      document.getElementById('checkSimetria').checked = true;
+      document.getElementById('sliderFovGlobal').value = CONFIG.fovPadraoGraus;
+      document.getElementById('labelFovGlobal').textContent = `${CONFIG.fovPadraoGraus}°`;
+      document.getElementById('sliderAlcanceGlobal').value = 25;
+      document.getElementById('labelAlcanceGlobal').textContent = '25 cm';
+      document.getElementById('sliderPassoAngularGlobal').value = 45;
+      document.getElementById('labelPassoAngularGlobal').textContent = '45°';
+      document.getElementById('sliderLinhaX').value = 4.2;
+      document.getElementById('sliderLinhaY').value = -4.6;
+      document.getElementById('labelPosSensoresLinha').textContent = 'X: ±4,2 · Y: -4,6 cm';
+      document.getElementById('labelGiroRobo').textContent = '0°';
+      btnToggleCones.classList.add('ativo');
+      btnToggleCones.textContent = 'Cones Visíveis';
+
+      criarSlidersSensores();
+      renderizarEditorRegras();
+      executarCicloSimulacao();
+    });
+
+    criarSlidersSensores();
+    renderizarEditorRegras();
+    executarCicloSimulacao();
+  </script>
+</body>
+</html>
