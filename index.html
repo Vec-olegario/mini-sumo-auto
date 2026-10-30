@@ -1434,11 +1434,11 @@
       },
 
       sensoresPadrao: [
-        { id: 'S1', nome: 'Frente Esq++', angulo: 45,  fov: 38, alcanceCm: 20, offsetLocalCm: { x: -4.2, y: -2.0 } },
-        { id: 'S2', nome: 'Frente Esq',   angulo: 70,  fov: 38, alcanceCm: 26, offsetLocalCm: { x: -2.1, y: -2.0 } },
-        { id: 'S3', nome: 'Centro',       angulo: 90,  fov: 38, alcanceCm: 32, offsetLocalCm: { x:  0.0, y: -2.0 } },
-        { id: 'S4', nome: 'Frente Dir',   angulo: 110, fov: 38, alcanceCm: 26, offsetLocalCm: { x:  2.1, y: -2.0 } },
-        { id: 'S5', nome: 'Frente Dir++', angulo: 135, fov: 38, alcanceCm: 20, offsetLocalCm: { x:  4.2, y: -2.0 } }
+        { id: 'S1', nome: 'Frente Esq++', angulo: 45,  fov: 38, alcanceCm: 15, offsetLocalCm: { x: -4.2, y: -2.0 } },
+        { id: 'S2', nome: 'Frente Esq',   angulo: 70,  fov: 38, alcanceCm: 20, offsetLocalCm: { x: -2.1, y: -2.0 } },
+        { id: 'S3', nome: 'Centro',       angulo: 90,  fov: 38, alcanceCm: 25, offsetLocalCm: { x:  0.0, y: -2.0 } },
+        { id: 'S4', nome: 'Frente Dir',   angulo: 110, fov: 38, alcanceCm: 20, offsetLocalCm: { x:  2.1, y: -2.0 } },
+        { id: 'S5', nome: 'Frente Dir++', angulo: 135, fov: 38, alcanceCm: 15, offsetLocalCm: { x:  4.2, y: -2.0 } }
       ],
 
       // Presets rápidos de ação para o seletor de cada regra
@@ -1506,7 +1506,7 @@
       ladoManobraBorda: 'direita',
 
       // Oponente (agora também possui rotação e velocidade angular omegaGraus!)
-      oponenteCm: { x: 0, y: -10.5 },
+      oponenteCm: { x: 0, y: -21.8 },
       oponenteVel: { vx: 0, vy: 0, omegaGraus: 0 },
       rotacaoOponenteGraus: 0,
       modoOponente: 'pesado',
@@ -3534,7 +3534,7 @@
       estado.regrasEngenharia = JSON.parse(JSON.stringify(CONFIG.regrasPadraoEngenharia));
       estado.velBuscaPadrao = 150;
       estado.roboCm = { x: 0, y: 10.5 };
-      estado.oponenteCm = { x: 0, y: -10.5 };
+      estado.oponenteCm = { x: 0, y: -21.8 };
       estado.rotacaoRoboGraus = 0;
       estado.tempoManobraBorda = 0;
       estado.mostrarCones = true;
