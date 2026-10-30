@@ -2146,29 +2146,11 @@
         ctx.restore();
       }
 
-      // 8.3. Cones dos Sensores + Destaque de Interseção + Feixe Laser de Reflexo
-      const intersecoes = analisarCoberturaAngular();
+      // 8.3. Cones dos Sensores + Feixe Laser de Reflexo
+      analisarCoberturaAngular();
 
       if (estado.mostrarCones) {
-        // Fatias de interseção angular (Melhoria E)
-        intersecoes.forEach((inter) => {
-          const radIni = grausParaRad(inter.de + estado.rotacaoRoboGraus);
-          const radFim = grausParaRad(inter.ate + estado.rotacaoRoboGraus);
-          const angIniCanvas = Math.atan2(-Math.sin(radIni), -Math.cos(radIni));
-          const angFimCanvas = Math.atan2(-Math.sin(radFim), -Math.cos(radFim));
-          const raioPx = inter.alcanceCm * pxPorCm;
-
-          ctx.save();
-          ctx.beginPath();
-          ctx.moveTo(roboPxX, roboPxY);
-          ctx.arc(roboPxX, roboPxY, raioPx, angIniCanvas, angFimCanvas);
-          ctx.closePath();
-          ctx.fillStyle = 'rgba(56, 189, 248, 0.09)';
-          ctx.fill();
-          ctx.restore();
-        });
-
-        // Cones individuais saindo de cada sensor na borda do robô
+        // Cones individuais saindo exatamente da posição física de cada sensor no chassi
         leituras.forEach((sensor) => {
           if (sensor.habilitado === false) return;
           const sx = dohyoCx + sensor.origemCm.x * pxPorCm;
