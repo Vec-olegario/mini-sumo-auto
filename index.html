@@ -1372,9 +1372,9 @@
             <div class="global-ctrl-box">
               <div class="global-ctrl-topo">
                 <span>Abertura Global</span>
-                <span class="slider-val" id="labelFovGlobal">40°</span>
+                <span class="slider-val" id="labelFovGlobal">45°</span>
               </div>
-              <input type="range" id="sliderFovGlobal" min="10" max="90" step="1" value="40" />
+              <input type="range" id="sliderFovGlobal" min="10" max="90" step="1" value="45" />
             </div>
 
             <div class="global-ctrl-box">
@@ -1425,7 +1425,7 @@
       roboTamanhoCm: 10,         // Robô 10 x 10 cm (500 g)
       oponenteTamanhoCm: 10,     // Oponente 10 x 10 cm (500 g)
       minSensorYCm: -2.0,        // Atrás da lâmina frontal chanfrada (a lâmina vai de Y=-5,0 até Y=-2,6 cm)
-      fovPadraoGraus: 40,
+      fovPadraoGraus: 45,
 
       // Sensores de linha branca (QRE1113/TCRT5000) sob os cantos frontais da lâmina
       sensoresLinhaLocalCm: {
@@ -1434,11 +1434,11 @@
       },
 
       sensoresPadrao: [
-        { id: 'S1', nome: 'Frente Esq++', angulo: 45,  fov: 38, alcanceCm: 15, offsetLocalCm: { x: -4.2, y: -2.0 } },
-        { id: 'S2', nome: 'Frente Esq',   angulo: 70,  fov: 38, alcanceCm: 20, offsetLocalCm: { x: -2.1, y: -2.0 } },
-        { id: 'S3', nome: 'Centro',       angulo: 90,  fov: 38, alcanceCm: 25, offsetLocalCm: { x:  0.0, y: -2.0 } },
-        { id: 'S4', nome: 'Frente Dir',   angulo: 110, fov: 38, alcanceCm: 20, offsetLocalCm: { x:  2.1, y: -2.0 } },
-        { id: 'S5', nome: 'Frente Dir++', angulo: 135, fov: 38, alcanceCm: 15, offsetLocalCm: { x:  4.2, y: -2.0 } }
+        { id: 'S1', nome: 'Frente Esq++', angulo: 45,  fov: 45, alcanceCm: 15, offsetLocalCm: { x: -4.2, y: -2.0 } },
+        { id: 'S2', nome: 'Frente Esq',   angulo: 70,  fov: 45, alcanceCm: 20, offsetLocalCm: { x: -2.1, y: -2.0 } },
+        { id: 'S3', nome: 'Centro',       angulo: 90,  fov: 45, alcanceCm: 25, offsetLocalCm: { x:  0.0, y: -2.0 } },
+        { id: 'S4', nome: 'Frente Dir',   angulo: 110, fov: 45, alcanceCm: 20, offsetLocalCm: { x:  2.1, y: -2.0 } },
+        { id: 'S5', nome: 'Frente Dir++', angulo: 135, fov: 45, alcanceCm: 15, offsetLocalCm: { x:  4.2, y: -2.0 } }
       ],
 
       // Presets rápidos de ação para o seletor de cada regra
